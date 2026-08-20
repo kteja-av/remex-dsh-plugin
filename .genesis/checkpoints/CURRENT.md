@@ -1,18 +1,17 @@
 # CURRENT — remex-dsh-plugin
 
-**Status:** M2 complete (L4 APPROVE) — ready for M3 BUILD loop  
+**Status:** M3 complete (L4 APPROVE) — ready for M4 BUILD loop  
 **Updated:** 2026-08-20  
-**Next milestone:** M3 — MemoryService provider + Cordis mount  
-**Demo command:** `pnpm test tests/remex-provider.test.ts && grep -q remex-provider cordis.patch.yml`
+**Next milestone:** M4 — Context injector (retrieve before inference)  
+**Demo command:** `pnpm test tests/context-injector.test.ts`
 
 ## Active loop state
 - active_loop: idle
-- target: M3
+- target: M4
 - last_gate: L4 APPROVE
-- last_action: M2 demo `pnpm test tests/remex-client.test.ts` → 9/9 pass
+- last_action: M3 demo `pnpm test tests/remex-provider.test.ts && grep -q remex-provider cordis.patch.yml` → pass
 - model: composer
-- skills_loaded: [agentic-swe-master, coding-orchestrator, tdd, production-readiness]
 
 ## Notes
-- vitest ^3.2.4 added; pnpm install exit 0 (esbuild builds not blocked this session)
-- M2 L4 quiz-me questions logged in `.genesis/checkpoints/M2.md` — awaiting human answers optional
+- `cordis.patch.yml` mounts `@your-scope/remex-dsh-plugin/remex-provider` as `id: memory`
+- Replace placeholder tenant/user UUIDs in patch config before real use
