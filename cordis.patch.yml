@@ -1,0 +1,10 @@
+# remex-dsh-plugin bundle patch (stub — M3 mounts RemexMemoryProvider).
+#
+# Applied after the profile's bundle layers. Override a row by restating every
+# key you keep; a patch replaces the row's whole config.
+#
+# M3 will insert:
+#   - id: memory
+#     name: <absolute-path>/src/remex-provider.ts
+
+- insert: []
