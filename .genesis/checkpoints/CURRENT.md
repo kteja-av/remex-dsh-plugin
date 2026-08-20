@@ -1,19 +1,18 @@
 # CURRENT — remex-dsh-plugin
 
-**Status:** M1 complete — ready for M2 BUILD loop  
+**Status:** M2 complete (L4 APPROVE) — ready for M3 BUILD loop  
 **Updated:** 2026-08-20  
-**Next milestone:** M2 — Remex HTTP client + unit tests  
-**Demo command:** `pnpm test tests/remex-client.test.ts`
+**Next milestone:** M3 — MemoryService provider + Cordis mount  
+**Demo command:** `pnpm test tests/remex-provider.test.ts && grep -q remex-provider cordis.patch.yml`
 
 ## Active loop state
 - active_loop: idle
-- target: M2
-- last_gate: G4 (passed)
-- last_action: M1 demo `curl -sf http://localhost:8000/v1/health && pnpm install && pnpm exec tsc --noEmit` → exit 0
+- target: M3
+- last_gate: L4 APPROVE
+- last_action: M2 demo `pnpm test tests/remex-client.test.ts` → 9/9 pass
 - model: composer
-- skills_loaded: [agentic-swe-master, coding-orchestrator, modular-architecture]
+- skills_loaded: [agentic-swe-master, coding-orchestrator, tdd, production-readiness]
 
 ## Notes
-- Remex stack started via `docker compose up -d --wait` in sibling `../remex-ai`
-- vitest devDep added in M2 (M1 has vitest.config.ts stub; pnpm v11 requires `pnpm approve-builds` for esbuild)
-- DSH vanilla build verification deferred — Cordis ^4.0.1 pinned from dsh-mem reference
+- vitest ^3.2.4 added; pnpm install exit 0 (esbuild builds not blocked this session)
+- M2 L4 quiz-me questions logged in `.genesis/checkpoints/M2.md` — awaiting human answers optional

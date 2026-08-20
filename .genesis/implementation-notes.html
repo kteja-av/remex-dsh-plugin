@@ -33,12 +33,12 @@
   <p class="sub"><b>Rolling source of truth for what is LIVE right now.</b> The wiki can lag; this file
      cannot. Read this on every session start to avoid rebuilding what exists. This is your
      <i>git-like restart point</i>: if context is lost, this file rehydrates you.
-     Last updated: <code>2026-08-20</code> · by loop: <code>L1 BUILD M1</code></p>
+     Last updated: <code>2026-08-20</code> · by loop: <code>L1 BUILD M2 + L4 VERIFY</code></p>
 
   <!-- ───────────── ONE-LINE STATUS ───────────── -->
   <div class="card live">
-    <b>Now in flight:</b> M2 — Remex HTTP client<br>
-    <b>Active loop:</b> idle · <b>Current milestone:</b> M1 done · <b>Phase:</b> 0–1<br>
+    <b>Now in flight:</b> M3 — MemoryService provider + Cordis mount<br>
+    <b>Active loop:</b> idle · <b>Current milestone:</b> M2 done · <b>Phase:</b> 3 + 12<br>
     <b>Blocked on:</b> none
   </div>
 
@@ -50,7 +50,9 @@
       <tbody>
         <tr><td>Package skeleton + Cordis dep</td><td><code>package.json</code>, <code>src/index.ts</code></td><td><span class="pill live">live</span></td><td>M1 demo exit 0</td></tr>
         <tr><td>TypeScript + tsc wired</td><td><code>tsconfig.json</code></td><td><span class="pill live">live</span></td><td><code>pnpm exec tsc --noEmit</code></td></tr>
-        <tr><td>Vitest config stub</td><td><code>vitest.config.ts</code></td><td><span class="pill wip">partial</span></td><td>devDep in M2</td></tr>
+        <tr><td>Remex HTTP client</td><td><code>src/remex-client.ts</code></td><td><span class="pill live">live</span></td><td>9/9 unit tests</td></tr>
+        <tr><td>Identity + turn UUID mapping</td><td><code>src/identity.ts</code></td><td><span class="pill live">live</span></td><td>UUID v5 + auth headers</td></tr>
+        <tr><td>Vitest wired</td><td><code>vitest.config.ts</code>, <code>tests/remex-client.test.ts</code></td><td><span class="pill live">live</span></td><td><code>pnpm test tests/remex-client.test.ts</code></td></tr>
         <tr><td>Cordis patch stub</td><td><code>cordis.patch.yml</code></td><td><span class="pill live">live</span></td><td>empty insert (M3 mounts provider)</td></tr>
         <tr><td>Remex health baseline</td><td><code>GET /v1/health</code></td><td><span class="pill live">live</span></td><td><code>curl -sf localhost:8000/v1/health</code></td></tr>
       </tbody>
