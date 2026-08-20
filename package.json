@@ -14,6 +14,18 @@
       "types": "./lib/remex-provider.d.ts",
       "default": "./lib/remex-provider.js"
     },
+    "./context-injector": {
+      "types": "./lib/context-injector.d.ts",
+      "default": "./lib/context-injector.js"
+    },
+    "./remember": {
+      "types": "./lib/remember.d.ts",
+      "default": "./lib/remember.js"
+    },
+    "./memory-tools": {
+      "types": "./lib/memory-tools.d.ts",
+      "default": "./lib/memory-tools.js"
+    },
     "./package.json": "./package.json"
   },
   "files": [
