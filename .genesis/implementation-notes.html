@@ -33,12 +33,12 @@
   <p class="sub"><b>Rolling source of truth for what is LIVE right now.</b> The wiki can lag; this file
      cannot. Read this on every session start to avoid rebuilding what exists. This is your
      <i>git-like restart point</i>: if context is lost, this file rehydrates you.
-     Last updated: <code>2026-08-20</code> · by loop: <code>L4 VERIFY M5</code></p>
+     Last updated: <code>2026-08-20</code> · by loop: <code>L4 VERIFY M6</code></p>
 
   <!-- ───────────── ONE-LINE STATUS ───────────── -->
   <div class="card live">
-    <b>Now in flight:</b> M6 — Cross-session recall + fail-open integration tests<br>
-    <b>Active loop:</b> idle · <b>Current milestone:</b> M5 done · <b>Phase:</b> 9 + 12<br>
+    <b>Now in flight:</b> M7 — memory_search tool + packaging docs<br>
+    <b>Active loop:</b> idle · <b>Current milestone:</b> M6 done · <b>Phase:</b> 7 + 17<br>
     <b>Blocked on:</b> none
   </div>
 
@@ -59,6 +59,8 @@
         <tr><td>Remex memory block formatter</td><td><code>src/format-context.ts</code></td><td><span class="pill live">live</span></td><td><code>&lt;remex_memory&gt;</code> + fingerprint</td></tr>
         <tr><td>Context injector (pre-step)</td><td><code>src/context-injector.ts</code></td><td><span class="pill live">live</span></td><td>10/10 tests; fold + dedupe</td></tr>
         <tr><td>Async remember (session/event)</td><td><code>src/remember.ts</code></td><td><span class="pill live">live</span></td><td>10/10 tests; fire-and-forget evaluate</td></tr>
+        <tr><td>Fail-open integration tests</td><td><code>tests/failure.test.ts</code></td><td><span class="pill live">live</span></td><td>7/7; provider + pre-step</td></tr>
+        <tr><td>Cross-session recall experiment</td><td><code>tests/integration/recall-experiment.test.ts</code></td><td><span class="pill live">live</span></td><td>4/4 Teja/driving/dosa script</td></tr>
         <tr><td>Remex health baseline</td><td><code>GET /v1/health</code></td><td><span class="pill live">live</span></td><td><code>curl -sf localhost:8000/v1/health</code></td></tr>
       </tbody>
     </table>
