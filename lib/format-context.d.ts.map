@@ -1,0 +1,1 @@
+{"version":3,"file":"format-context.d.ts","sourceRoot":"","sources":["../src/format-context.ts"],"names":[],"mappings":"AAEA,OAAO,KAAK,EAAE,eAAe,EAAE,MAAM,mBAAmB,CAAC;AAKzD,wBAAgB,sBAAsB,CACpC,QAAQ,EAAE,SAAS,eAAe,EAAE,GACnC,MAAM,GAAG,SAAS,CAapB;AAED,wEAAwE;AACxE,wBAAgB,iBAAiB,CAAC,QAAQ,EAAE,SAAS,eAAe,EAAE,GAAG,MAAM,CAK9E;AAED,wBAAgB,kBAAkB,CAAC,OAAO,EAAE,MAAM,GAAG,OAAO,CAE3D"}
