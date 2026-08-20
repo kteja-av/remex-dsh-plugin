@@ -1,10 +1,15 @@
-# remex-dsh-plugin bundle patch (stub — M3 mounts RemexMemoryProvider).
+# remex-dsh-plugin bundle patch — mounts RemexMemoryProvider as ctx.memory.
 #
 # Applied after the profile's bundle layers. Override a row by restating every
 # key you keep; a patch replaces the row's whole config.
-#
-# M3 will insert:
-#   - id: memory
-#     name: <absolute-path>/src/remex-provider.ts
 
-- insert: []
+- insert:
+    - id: memory
+      name: "@your-scope/remex-dsh-plugin/remex-provider"
+      config:
+        baseUrl: http://localhost:8000
+        tenantId: "00000000-0000-4000-8000-000000000001"
+        userId: "00000000-0000-4000-8000-000000000002"
+        tokenBudget: 512
+        limit: 5
+        rememberType: semantic
