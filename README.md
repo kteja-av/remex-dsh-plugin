@@ -2,7 +2,13 @@
 
 Cordis MemoryService provider for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) over [Remex](https://github.com/kteja-av/remex-ai) HTTP.
 
-DSH owns the agent loop; Remex owns memory. This plugin retrieves relevant memories before inference, evaluates new memories after each turn, and exposes an explicit `memory_search` tool — without modifying either core runtime.
+DSH owns the agent loop; Remex owns memory. This out-of-tree plugin:
+
+- **Retrieves** relevant memories before inference (`agent/pre-step`)
+- **Evaluates** new memories after each turn (`session/event`, async)
+- **Exposes** an explicit `memory_search` tool for agent-directed recall
+
+It does not modify DSH core or Remex internals. Pattern follows [dsh-mem](https://github.com/Jelee0145/dsh-mem): Service Definition + Provider + Consumers, mounted via `cordis.patch.yml`.
 
 ## Prerequisites
 
@@ -17,38 +23,50 @@ curl -sf http://localhost:8000/v1/health
 # {"status":"ok"}
 ```
 
+## Quick start
+
+```bash
+# In remex-dsh-plugin
+pnpm install
+pnpm test && pnpm exec tsc --noEmit
+pnpm run build
+
+# Add to a DSH profile (local path or published package)
+dsh plugin --profile <your-profile> add /absolute/path/to/remex-dsh-plugin
+```
+
+Set tenant/user UUIDs in `cordis.patch.yml` (or your profile overlay) before running agents against Remex.
+
 ## Install
 
-### Published package (when available)
+### Published package
 
 ```bash
 dsh plugin --profile <your-profile> add @your-scope/remex-dsh-plugin
 ```
 
-### Local development patch
-
-From your DSH checkout or profile directory:
+### Local development
 
 ```bash
 pnpm install
-pnpm run build   # in remex-dsh-plugin
+pnpm run build
 dsh plugin --profile <your-profile> add /absolute/path/to/remex-dsh-plugin
 ```
 
-Or overlay the bundled patch manually — the package ships `cordis.patch.yml` under the `dsh.bundle.patch` field in `package.json`.
+The package bundles `cordis.patch.yml` via `package.json` → `dsh.bundle.patch`. You can also copy or extend that patch in your profile's own `cordis.patch.yml` overlay.
 
 ## Cordis patch
 
-`cordis.patch.yml` mounts the full plugin stack:
+`cordis.patch.yml` mounts the full stack:
 
-| Row id | Module | Purpose |
+| Row id | Export | Purpose |
 |--------|--------|---------|
-| `memory` | `remex-provider` | `ctx.memory` over Remex HTTP |
+| `memory` | `remex-provider` | `ctx.memory` — Remex HTTP adapter |
 | `remex-context-injector` | `context-injector` | Pre-step `<remex_memory>` inject |
-| `remex-remember` | `remember` | Post-turn async evaluate |
-| `tool-memory-search` | `memory-tools` | Agent-directed `memory_search` tool |
+| `remex-remember` | `remember` | Post-turn async evaluate enqueue |
+| `tool-memory-search` | `memory-tools` | `memory_search` tool |
 
-Example override (restates every key you keep — patches replace whole config):
+Example (override restates every key you keep — patches replace whole row config):
 
 ```yaml
 - insert:
@@ -61,20 +79,37 @@ Example override (restates every key you keep — patches replace whole config):
         tokenBudget: 512
         limit: 5
         rememberType: semantic
+    - id: remex-context-injector
+      name: "@your-scope/remex-dsh-plugin/context-injector"
+      config:
+        enabled: true
+        tokenBudget: 512
+        limit: 5
+    - id: remex-remember
+      name: "@your-scope/remex-dsh-plugin/remember"
+      config:
+        enabled: true
+        rememberType: semantic
+    - id: tool-memory-search
+      name: "@your-scope/remex-dsh-plugin/memory-tools"
+      config:
+        enabled: true
+        tokenBudget: 512
+        limit: 5
 ```
 
 ## Configuration
 
-Set via each plugin row's `config` in `cordis.patch.yml` (or profile env interpolation where supported):
+Per-row `config` in `cordis.patch.yml`:
 
-| Key | Module | Purpose |
-|-----|--------|---------|
+| Key | Module(s) | Purpose |
+|-----|-----------|---------|
 | `baseUrl` | remex-provider | Remex API base URL (default `http://localhost:8000`) |
 | `tenantId` | remex-provider | `X-Tenant-ID` UUID |
 | `userId` | remex-provider | `X-User-ID` UUID |
 | `tokenBudget` | remex-provider, context-injector, memory-tools | Default retrieve token budget |
 | `limit` | remex-provider, context-injector, memory-tools | Default retrieve result limit |
-| `rememberType` | remex-provider, remember | Default evaluate memory type (`semantic`) |
+| `rememberType` | remex-provider, remember | Evaluate memory type (default `semantic`) |
 | `enabled` | context-injector, remember, memory-tools | Toggle auto inject / remember / tool |
 | `timeoutMs` | remex-provider | Outbound HTTP timeout (default 5000 ms) |
 
@@ -86,31 +121,80 @@ Environment variables for local dev (map into patch config in your profile):
 | `REMEX_TENANT_ID` | `tenantId` |
 | `REMEX_USER_ID` | `userId` |
 
+## Remex API
+
+| Operation | Endpoint | Notes |
+|-----------|----------|-------|
+| Health | `GET /v1/health` | No auth |
+| Retrieve | `GET /v1/memories:retrieve?query=...` | Uses `query` param (not `q`); auth headers required |
+| Remember | `POST /v1/memories:evaluate` | Returns `202 { job_id }`; never poll on hot path |
+
+Auth headers on every authenticated call: `X-Tenant-ID`, `X-User-ID`. DSH `MessageId` values map to Remex `source_turn_ids` as deterministic UUID v5.
+
+## Architecture
+
+```
+BEFORE inference  →  agent/pre-step  →  ctx.memory.recall  →  inject <remex_memory>
+AFTER turn        →  session/event   →  ctx.memory.save    →  POST /v1/memories:evaluate (async)
+On demand         →  memory_search   →  ctx.memory.recall
+```
+
+**Fail-open read path:** When Remex is down, times out, or returns `degraded: true`, retrieve returns empty context — the agent continues without injected memory.
+
+**Non-blocking write path:** Evaluate is fire-and-forget after `turn/end`; 429/5xx are logged, not thrown to the agent loop.
+
+**Cross-session recall:** Scoped by tenant + user headers, not DSH session id.
+
 ## Tools
 
 ### `memory_search`
 
-Agent-directed recall on top of automatic pre-step injection. Calls `ctx.memory.recall(query)` and returns structured memories plus an optional `<remex_memory>` formatted block.
+Agent-directed recall when automatic pre-step injection is insufficient. Delegates to `ctx.memory.recall(query)`.
 
-Parameters:
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `query` | yes | Natural-language search string |
+| `tokenBudget` | no | Overrides plugin default |
+| `limit` | no | Max memories returned |
 
-- `query` (required) — natural-language search string
-- `tokenBudget` (optional) — overrides plugin default
-- `limit` (optional) — max memories returned
+Returns structured memories and, when non-empty, a `<remex_memory>` formatted block.
+
+## Package layout
+
+```
+src/
+├── memory.ts           # Abstract MemoryService seam
+├── remex-client.ts     # HTTP client (retrieve, evaluate, health)
+├── remex-provider.ts   # RemexMemoryProvider (ctx.memory)
+├── identity.ts         # MessageId → UUID v5 + auth headers
+├── format-context.ts   # <remex_memory> block builder
+├── context-injector.ts # agent/pre-step consumer
+├── remember.ts         # session/event async write
+├── memory-tools.ts     # memory_search tool
+└── index.ts            # Re-exports
+```
 
 ## Development
 
 ```bash
 pnpm install
-pnpm test
+pnpm test                  # 51 tests
 pnpm exec tsc --noEmit
-pnpm run build
+pnpm run build             # emits lib/
 ```
 
-## Architecture
+Key test suites:
 
-- **Read path (fail-open):** `agent/pre-step` → `ctx.memory.recall` → inject `<remex_memory>` or empty context
-- **Write path (non-blocking):** `session/event` → `ctx.memory.save` → `POST /v1/memories:evaluate` (202 + job_id)
-- **Explicit recall:** `memory_search` tool → same `ctx.memory.recall` seam
+| File | Covers |
+|------|--------|
+| `tests/remex-client.test.ts` | HTTP client, timeouts, API shapes |
+| `tests/remex-provider.test.ts` | Fail-open recall, evaluate delegate |
+| `tests/context-injector.test.ts` | Pre-step inject, dedupe |
+| `tests/remember.test.ts` | Async evaluate enqueue |
+| `tests/failure.test.ts` | Remex down → empty recall, agent continues |
+| `tests/integration/recall-experiment.test.ts` | Cross-session recall script |
+| `tests/memory-tools.test.ts` | memory_search → ctx.memory.recall |
 
-Cross-session recall is keyed by tenant + user headers, not DSH session id.
+## Status
+
+MVP complete (M1–M7): provider, pre-step inject, async remember, `memory_search`, fail-open tests, and full Cordis patch packaging.
