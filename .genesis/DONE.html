@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>DONE — remex-dsh-plugin</title>
+<style>
+  :root { --bg:#0d1117; --card:#161b22; --line:#30363d; --ink:#e6edf3; --mut:#8b949e;
+          --ok:#2ea043; --warn:#d29922; --bad:#f85149; --accent:#58a6ff; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink);
+         font:15px/1.55 ui-sans-serif,-apple-system,Segoe UI,Roboto,sans-serif; }
+  .wrap { max-width:920px; margin:0 auto; padding:32px 24px 80px; }
+  h1 { font-size:26px; margin:0 0 4px; }
+  h2 { font-size:18px; margin:32px 0 12px; border-bottom:1px solid var(--line); padding-bottom:6px; }
+  .sub { color:var(--mut); margin:0 0 24px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px 18px; margin:12px 0; }
+  .locked { border-left:3px solid var(--warn); }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  th,td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { color:var(--mut); font-weight:600; }
+  code { background:#1f2630; padding:1px 6px; border-radius:5px; font-size:13px; }
+  .gate { display:flex; gap:10px; align-items:flex-start; padding:6px 0; }
+  .box { width:16px; height:16px; border:1.5px solid var(--mut); border-radius:4px; flex:0 0 auto; margin-top:2px; }
+  .done .box { background:var(--ok); border-color:var(--ok); }
+  .done .label { color:var(--mut); text-decoration:line-through; }
+  .pill { display:inline-block; font-size:11px; padding:2px 8px; border-radius:999px; border:1px solid var(--line); color:var(--mut); }
+  .pill.ok{color:var(--ok);border-color:var(--ok);} .pill.wip{color:var(--warn);border-color:var(--warn);}
+  .note { color:var(--mut); font-size:13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>DONE — remex-dsh-plugin</h1>
+  <p class="sub">The single source of truth for <b>what "done" means</b> and <b>the implementation plan</b>.
+     This file is LOCKED — the driver model may not edit it without explicit user request.
+     Updated: 2026-08-20</p>
+
+  <!-- ───────────── THE LOCKED SPEC ───────────── -->
+  <h2>1 · The Locked Spec (what we are building)</h2>
+  <div class="card locked">
+    <p><b>Cognitive job:</b> Provide persistent, token-budgeted memory for DeepSeek Harness agents by implementing a Cordis MemoryService provider that retrieves relevant memories before inference and asynchronously evaluates new memories after each turn — without modifying DSH core or Remex internals.</p>
+    <p><b>Inputs:</b> DSH user/assistant messages, session events, tenant/user config (UUID headers), Remex HTTP API &nbsp;→&nbsp; <b>Outputs:</b> Injected <code>&lt;remex_memory&gt;</code> context blocks, async evaluate jobs, optional <code>memory_search</code> tool results</p>
+    <p><b>Autonomy level:</b> Supervised plugin — automatic retrieve/inject + async write; no autonomous deletion without explicit tool/phase-2 &nbsp;|&nbsp; <b>Human-in-the-loop points:</b> Cordis patch install, tenant/user UUID config, cross-session recall acceptance test, L4 VERIFY approval per milestone</p>
+    <p><b>Failure tolerance:</b> Read path fail-open (empty context, agent continues); write path best-effort async (log 429/5xx, never block reply); Remex degraded flag honored &nbsp;|&nbsp; <b>Trust boundary:</b> HTTP between DSH plugin and Remex CMIS; X-Tenant-ID / X-User-ID enforce isolation; untrusted user content in memory blocks — no prompt injection into Remex judge from plugin</p>
+    <p class="note">G0 diagnostic — scope: <b>new</b> sibling package · AI: <b>yes</b> (agent loop + memory injection) · distributed: <b>yes</b> (DSH process ↔ Remex service) · trust: <b>yes</b> (tenant headers, external HTTP) · phase: <b>0→1</b> (cognitive + architecture, pre-MVP code).</p>
+  </div>
+
+  <!-- ───────────── DEFINITION OF DONE ───────────── -->
+  <h2>2 · Definition of Done (binary gates — checked by the VERIFIER, not the maker)</h2>
+  <div class="card">
+    <div class="gate"><span class="box"></span><span class="label">Cognitive job written; autonomy explicit; failure modes listed <span class="note">(Phase 0 gate)</span></span></div>
+    <div class="gate"><span class="box"></span><span class="label">Plugin architecture chosen; dependency graph acyclic; no DSH/Remex core imports <span class="note">(Phase 1 gate)</span></span></div>
+    <div class="gate"><span class="box"></span><span class="label">Every Remex outbound HTTP call has timeout; retrieve fail-open; write non-blocking <span class="note">(Phase 3 + 12 gates)</span></span></div>
+    <div class="gate"><span class="box"></span><span class="label">Memory tiers separated — Remex owns persistence/RAG; plugin only adapts <span class="note">(Phase 6 gate)</span></span></div>
+    <div class="gate"><span class="box"></span><span class="label">Tool registry for memory_search with schema; no tool without capability grant <span class="note">(Phase 7 gate)</span></span></div>
+    <div class="gate"><span class="box"></span><span class="label">Cross-session recall + fail-open tests in golden path <span class="note">(Phase 9 gate)</span></span></div>
+    <div class="gate"><span class="box"></span><span class="label">Threat model for tenant isolation + memory block injection <span class="note">(Phase 11 gate)</span></span></div>
+    <div class="gate"><span class="box"></span><span class="label"><code>pnpm exec tsc --noEmit</code> clean AND <code>pnpm test</code> green</span></div>
+    <div class="gate"><span class="box"></span><span class="label">One <code>verify</code> pass by a <b>separate</b> agent/model (L4)</span></div>
+    <div class="gate"><span class="box"></span><span class="label">No <code>context-graph.json</code> invariant violated by the change</span></div>
+    <p class="note">A milestone is DONE only when every box above is checked by the verifier. Pull each
+       gate from the relevant <code>agentic-swe-master</code> phase gate.</p>
+  </div>
+
+  <!-- ───────────── IMPLEMENTATION PLAN ───────────── -->
+  <h2>3 · Implementation Plan (the work, sliced into milestones)</h2>
+  <div class="card">
+    <table>
+      <thead><tr><th>#</th><th>Milestone</th><th>Phase</th><th>Demo command (proves it works)</th><th>Loops</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>M1</td><td>Baseline + package skeleton</td><td>Phase 0–1</td><td><code>curl -sf http://localhost:8000/v1/health && pnpm install && pnpm exec tsc --noEmit</code></td><td>L1, L4</td><td><span class="pill wip">todo</span></td></tr>
+        <tr><td>M2</td><td>Remex HTTP client + tests</td><td>Phase 3, 12</td><td><code>pnpm test tests/remex-client.test.ts</code></td><td>L1, L4</td><td><span class="pill">todo</span></td></tr>
+        <tr><td>M3</td><td>MemoryService provider + patch</td><td>Phase 1, 6</td><td><code>pnpm test tests/remex-provider.test.ts && grep -q remex-provider cordis.patch.yml</code></td><td>L1, L4</td><td><span class="pill">todo</span></td></tr>
+        <tr><td>M4</td><td>Context injector (pre-step)</td><td>Phase 5, 6</td><td><code>pnpm test tests/context-injector.test.ts</code></td><td>L1, L3, L4</td><td><span class="pill">todo</span></td></tr>
+        <tr><td>M5</td><td>Async remember path</td><td>Phase 4, 12</td><td><code>pnpm test tests/remember.test.ts</code></td><td>L1, L4</td><td><span class="pill">todo</span></td></tr>
+        <tr><td>M6</td><td>Recall experiment + fail-open</td><td>Phase 9, 12</td><td><code>pnpm test tests/failure.test.ts</code></td><td>L1, L3, L4</td><td><span class="pill">todo</span></td></tr>
+        <tr><td>M7</td><td>memory_search + README</td><td>Phase 7, 17</td><td><code>pnpm test && pnpm exec tsc --noEmit</code></td><td>L1, L2, L4</td><td><span class="pill">todo</span></td></tr>
+      </tbody>
+    </table>
+    <p class="note">Total token budget = (n milestones × 50000). Update <span class="pill wip">wip</span> /
+       <span class="pill ok">done</span> as loops complete. This table is mirrored in <code>PLAN.md</code> for the agent to parse.</p>
+  </div>
+
+  <!-- ───────────── SKILL LOADING ───────────── -->
+  <h2>4 · Skill Loading Per Milestone</h2>
+  <div class="card">
+    <table>
+      <thead><tr><th>Milestone</th><th>Always-on canon</th><th>Milestone-specific skills</th></tr></thead>
+      <tbody>
+        <tr><td>M1</td><td>agentic-swe-master, coding-orchestrator, modular-architecture</td><td>tdd, data-systems-engineering</td></tr>
+        <tr><td>M2</td><td>(canon)</td><td>tdd, production-readiness, llmops-ai-agents</td></tr>
+        <tr><td>M3</td><td>(canon)</td><td>tdd, security-engineering, distributed-systems</td></tr>
+        <tr><td>frontend M*</td><td>(canon)</td><td><b>design-system skill (MANDATORY)</b>, tdd, qa</td></tr>
+      </tbody>
+    </table>
+    <p class="note">If a milestone needs a skill not listed, G1 logs "skill X needed but not on the menu — loaded ad hoc" so the choice is visible.</p>
+  </div>
+
+</div>
+</body>
+</html>

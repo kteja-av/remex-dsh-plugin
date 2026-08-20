@@ -1,0 +1,44 @@
+{
+  "$comment": "Per-project causal/dependency graph. nodes=modules/files, edges=[cause,effect] (cause is imported-by effect), invariants=health rules the L4 verifier checks before declaring done.",
+  "project": "remex-dsh-plugin",
+  "generated": "2026-08-20T12:07:00Z",
+  "nodes": [
+    { "id": "memory.ts", "kind": "domain", "summary": "Abstract MemoryService seam (recall/save/forget)" },
+    { "id": "remex-client.ts", "kind": "adapter", "summary": "HTTP client for Remex retrieve/evaluate/health" },
+    { "id": "remex-provider.ts", "kind": "adapter", "summary": "RemexMemoryProvider Cordis service registration" },
+    { "id": "context-injector.ts", "kind": "integration", "summary": "agent/pre-step waterfall — retrieve + inject <remex_memory>" },
+    { "id": "remember.ts", "kind": "integration", "summary": "session/event async evaluate enqueue" },
+    { "id": "memory-tools.ts", "kind": "integration", "summary": "memory_search tool calling recall" },
+    { "id": "identity.ts", "kind": "domain", "summary": "MessageId → UUID v5 + tenant/user mapping" },
+    { "id": "format-context.ts", "kind": "domain", "summary": "Build token-budgeted <remex_memory> block" },
+    { "id": "index.ts", "kind": "entry", "summary": "Package exports for npm / cordis.patch.yml" }
+  ],
+  "edges": [
+    ["remex-provider.ts", "memory.ts"],
+    ["remex-provider.ts", "remex-client.ts"],
+    ["remex-provider.ts", "identity.ts"],
+    ["context-injector.ts", "memory.ts"],
+    ["context-injector.ts", "format-context.ts"],
+    ["remember.ts", "memory.ts"],
+    ["remember.ts", "identity.ts"],
+    ["memory-tools.ts", "memory.ts"],
+    ["remex-client.ts", "identity.ts"],
+    ["index.ts", "remex-provider.ts"],
+    ["index.ts", "context-injector.ts"],
+    ["index.ts", "remember.ts"],
+    ["index.ts", "memory-tools.ts"]
+  ],
+  "invariants": {
+    "plugin_boundary": "Plugin source imports only @deepseek-ai/cordis public APIs and local src/** — never deepseek-harness core or remex-ai internals.",
+    "retrieve_fail_open": "Every Remex retrieve path returns empty memory context (never throws to the agent loop) when Remex is down, times out, or returns degraded:true.",
+    "write_non_blocking": "Remember/evaluate is fire-and-forget after assistant reply — no await on job completion on the hot path; every outbound HTTP call has a configured timeout."
+  },
+  "freeze_boundary": [
+    "src/**",
+    "tests/**",
+    "package.json",
+    "cordis.patch.yml",
+    "tsconfig.json",
+    "vitest.config.ts"
+  ]
+}
