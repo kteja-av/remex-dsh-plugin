@@ -1,17 +1,17 @@
 # CURRENT — remex-dsh-plugin
 
-**Status:** M4 complete (L4 APPROVE) — ready for M5 BUILD loop  
+**Status:** M5 complete (L4 APPROVE) — ready for M6 BUILD loop  
 **Updated:** 2026-08-20  
-**Next milestone:** M5 — Async remember path  
-**Demo command:** `pnpm test tests/remember.test.ts`
+**Next milestone:** M6 — Cross-session recall + fail-open integration tests  
+**Demo command:** `pnpm test tests/failure.test.ts`
 
 ## Active loop state
 - active_loop: idle
-- target: M5
+- target: M6
 - last_gate: L4 APPROVE
-- last_action: M4 demo `pnpm test tests/context-injector.test.ts` → 10/10 pass
+- last_action: M5 demo `pnpm test tests/remember.test.ts` → 10/10; full suite 33/33
 - model: composer
 
 ## Notes
-- Added `@deepseek-ai/dsh-llm` for `createUserMessage` + Message types
-- context-injector not yet mounted in cordis.patch.yml (M5/M7 packaging)
+- `src/remember.ts` — session/event async evaluate enqueue (L4 APPROVE)
+- context-injector + remember not yet mounted in cordis.patch.yml (M7 packaging)
