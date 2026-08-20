@@ -1,17 +1,17 @@
 # CURRENT — remex-dsh-plugin
 
-**Status:** M6 complete (L4 APPROVE) — ready for M7 BUILD loop  
+**Status:** M7 complete (L4 APPROVE) — all milestones done (M1–M7)  
 **Updated:** 2026-08-20  
-**Next milestone:** M7 — memory_search tool + packaging docs  
+**Next milestone:** none (plan complete)  
 **Demo command:** `pnpm test && pnpm exec tsc --noEmit`
 
 ## Active loop state
 - active_loop: idle
-- target: M7
+- target: —
 - last_gate: L4 APPROVE
-- last_action: M6 demo `pnpm test tests/failure.test.ts` → 7/7; full suite 44/44
+- last_action: M7 demo 51/51 + tsc clean; full patch stack verified
 - model: composer
 
 ## Notes
-- `tests/failure.test.ts` + `tests/integration/recall-experiment.test.ts` (L4 APPROVE)
-- context-injector + remember not yet mounted in cordis.patch.yml (M7 packaging)
+- Full plugin stack live in cordis.patch.yml
+- All 7 milestones L4 APPROVE

@@ -1,4 +1,4 @@
-# remex-dsh-plugin bundle patch — mounts RemexMemoryProvider as ctx.memory.
+# remex-dsh-plugin bundle patch — full memory stack for DSH profiles.
 #
 # Applied after the profile's bundle layers. Override a row by restating every
 # key you keep; a patch replaces the row's whole config.
@@ -13,3 +13,20 @@
         tokenBudget: 512
         limit: 5
         rememberType: semantic
+    - id: remex-context-injector
+      name: "@your-scope/remex-dsh-plugin/context-injector"
+      config:
+        enabled: true
+        tokenBudget: 512
+        limit: 5
+    - id: remex-remember
+      name: "@your-scope/remex-dsh-plugin/remember"
+      config:
+        enabled: true
+        rememberType: semantic
+    - id: tool-memory-search
+      name: "@your-scope/remex-dsh-plugin/memory-tools"
+      config:
+        enabled: true
+        tokenBudget: 512
+        limit: 5
