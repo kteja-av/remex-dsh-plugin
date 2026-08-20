@@ -1,17 +1,17 @@
 # CURRENT — remex-dsh-plugin
 
-**Status:** M5 complete (L4 APPROVE) — ready for M6 BUILD loop  
+**Status:** M6 complete (L4 APPROVE) — ready for M7 BUILD loop  
 **Updated:** 2026-08-20  
-**Next milestone:** M6 — Cross-session recall + fail-open integration tests  
-**Demo command:** `pnpm test tests/failure.test.ts`
+**Next milestone:** M7 — memory_search tool + packaging docs  
+**Demo command:** `pnpm test && pnpm exec tsc --noEmit`
 
 ## Active loop state
 - active_loop: idle
-- target: M6
+- target: M7
 - last_gate: L4 APPROVE
-- last_action: M5 demo `pnpm test tests/remember.test.ts` → 10/10; full suite 33/33
+- last_action: M6 demo `pnpm test tests/failure.test.ts` → 7/7; full suite 44/44
 - model: composer
 
 ## Notes
-- `src/remember.ts` — session/event async evaluate enqueue (L4 APPROVE)
+- `tests/failure.test.ts` + `tests/integration/recall-experiment.test.ts` (L4 APPROVE)
 - context-injector + remember not yet mounted in cordis.patch.yml (M7 packaging)
