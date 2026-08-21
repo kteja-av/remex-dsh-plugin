@@ -21,6 +21,11 @@ export interface PreStepPayload {
         throwIfAborted(): void;
     };
 }
+declare module "@deepseek-ai/cordis" {
+    interface Events {
+        "agent/pre-step": (payload: PreStepPayload, next: () => Promise<PreStepDecision>) => PreStepDecision | Promise<PreStepDecision>;
+    }
+}
 export interface PreStepInjectionInput {
     claimedMessages: readonly Message[];
     decision: PreStepDecision;
@@ -40,7 +45,6 @@ export declare function handlePreStepInjection(input: PreStepInjectionInput): Pr
 export declare function apply(ctx: Context, config?: ContextInjectorConfig): void;
 export declare namespace apply {
     var inject: string[];
-    var name: string;
 }
 export default apply;
 //# sourceMappingURL=context-injector.d.ts.map

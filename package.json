@@ -38,7 +38,9 @@
     "prepare": "tsc -p tsconfig.json",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:sandbox": "pnpm run build && node --experimental-strip-types sandbox/run-integration.ts",
+    "test:dsh": "pnpm run build && node --experimental-strip-types sandbox/run-dsh-integration.ts"
   },
   "keywords": [
     "deepseek-harness",
@@ -57,6 +59,7 @@
     "@deepseek-ai/dsh-llm": "^0.1.0-rc.6"
   },
   "devDependencies": {
+    "@deepseek-ai/dsh": "0.1.0-rc.8",
     "@types/node": "^22.0.0",
     "typescript": "^6.0.3",
     "vitest": "^3.2.4"
