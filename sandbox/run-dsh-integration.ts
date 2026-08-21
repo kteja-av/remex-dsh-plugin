@@ -7,12 +7,15 @@ import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { startMockLlmServer } from "./mock-llm-server.ts";
+import { loadProjectEnv } from "./load-env.ts";
+
+loadProjectEnv();
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const DSH_BIN = join(ROOT, "node_modules/@deepseek-ai/dsh/lib/bin.js");
 const PLUGIN_PATH = ROOT;
-const DSH_HOME = join(dirname(fileURLToPath(import.meta.url)), ".dsh-home");
+const DSH_HOME =
+  process.env.DSH_HOME ?? join(dirname(fileURLToPath(import.meta.url)), ".dsh-home");
 const PROFILE = "remex-dsh-test";
 const REMEX_BASE_URL = process.env.REMEX_BASE_URL ?? "http://localhost:8000";
 
@@ -209,33 +212,34 @@ async function main(): Promise<void> {
     });
   }
 
-  // D4b — headless Cordis boot with remex + mock LLM (optional; needs credentials env)
-  const mock = await startMockLlmServer("Remex DSH headless boot ok.");
-  try {
-    const apiKey = "remex-dsh-sandbox-key";
+  // D4b — headless agent round-trip when DeepSeek key is configured
+  const deepseekKey = process.env.DEEPSEEK_API_KEY;
+  if (deepseekKey) {
     const headless = runDsh(
-      ["--profile", "headless", "Confirm", "the", "remex", "plugin", "stack", "loaded."],
+      ["--profile", "headless", "Reply", "with", "exactly:", "DSH", "boot", "ok"],
       {
-        DEEPSEEK_API_KEY: apiKey,
-        DEEPSEEK_BASE_URL: mock.baseURL,
+        DEEPSEEK_API_KEY: deepseekKey,
+        ...(process.env.DEEPSEEK_BASE_URL
+          ? { DEEPSEEK_BASE_URL: process.env.DEEPSEEK_BASE_URL }
+          : {}),
       },
     );
-    const bootOk =
-      headless.code === 0 &&
-      mock.requests.length > 0 &&
-      headless.stdout.includes("Remex DSH headless boot ok.");
+    const bootOk = headless.code === 0 && /DSH boot ok/i.test(headless.stdout);
     record({
       id: "D4b",
-      name: "Headless agent round-trip with remex bundle (mock LLM)",
-      status: bootOk ? "PASS" : mock.requests.length === 0 ? "SKIP" : "WARN",
+      name: "Headless agent round-trip (DeepSeek API)",
+      status: bootOk ? "PASS" : headless.code === 0 ? "WARN" : "FAIL",
       detail: bootOk
-        ? `requests=${mock.requests.length} stdout=${headless.stdout.trim()}`
-        : mock.requests.length === 0
-          ? "No LLM requests — set DEEPSEEK_API_KEY in profile settings for live headless runs"
-          : `run=${headless.code} stdout=${headless.stdout.slice(0, 120)}`,
+        ? headless.stdout.trim().slice(0, 120)
+        : `exit=${headless.code} stdout=${headless.stdout.slice(0, 120)} stderr=${headless.stderr.slice(0, 120)}`,
     });
-  } finally {
-    await mock.close();
+  } else {
+    record({
+      id: "D4b",
+      name: "Headless agent round-trip (DeepSeek API)",
+      status: "SKIP",
+      detail: "Set DEEPSEEK_API_KEY in .env and run pnpm run setup:credentials",
+    });
   }
 
   // D5 — Remex health when running live stack
