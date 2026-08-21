@@ -159,6 +159,10 @@ Agent-directed recall when automatic pre-step injection is insufficient. Delegat
 
 Returns structured memories and, when non-empty, a `<remex_memory>` formatted block.
 
+### Remember path and Write Gate
+
+Post-turn evaluate sends **third-person user facts** (e.g. `"The user works on …"`) derived from durable user messages. Assistant reply text is omitted from the evaluate payload (assistant message IDs remain in `source_turn_ids` for provenance). Remex Write Gate rejects candidates containing `"assistant"` or not starting with `"The user"`.
+
 ## Package layout
 
 ```
@@ -169,7 +173,7 @@ src/
 ├── identity.ts         # MessageId → UUID v5 + auth headers
 ├── format-context.ts   # <remex_memory> block builder
 ├── context-injector.ts # agent/pre-step consumer
-├── remember.ts         # session/event async write
+├── remember.ts         # session/event async write (Write Gate–friendly facts)
 ├── memory-tools.ts     # memory_search tool
 └── index.ts            # Re-exports
 ```
@@ -178,9 +182,11 @@ src/
 
 ```bash
 pnpm install
-pnpm test                  # 51 tests
+pnpm test                  # 52 tests
 pnpm exec tsc --noEmit
 pnpm run build             # emits lib/
+pnpm run test:sandbox      # live Remex HTTP checks
+pnpm run test:dsh          # DSH plugin add + dump-config
 ```
 
 Key test suites:

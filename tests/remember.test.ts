@@ -8,6 +8,7 @@ import {
   buildSaveInput,
   createRememberState,
   enqueueRemember,
+  formatUserFactForEvaluate,
   handleSessionEvent,
   isDurableUserMessage,
   shouldRememberTurn,
@@ -65,7 +66,16 @@ describe("remember helpers", () => {
     expect(shouldRememberTurn({ kind: "error" })).toBe(false);
   });
 
-  it("builds turn content with user and assistant sections", () => {
+  it("formats user facts for Remex Write Gate admission", () => {
+    expect(formatUserFactForEvaluate("My name is Teja.")).toBe("The user's name is Teja.");
+    expect(formatUserFactForEvaluate("I work on autonomous driving simulation.")).toBe(
+      "The user works on autonomous driving simulation.",
+    );
+    expect(formatUserFactForEvaluate("I like dosa.")).toBe("The user likes dosa.");
+    expect(formatUserFactForEvaluate("The user prefers tea.")).toBe("The user prefers tea.");
+  });
+
+  it("builds Write-Gate-friendly turn content from user text only", () => {
     const assistant = assistantMessage("Noted your preference.");
     const content = buildRememberContent({
       turn: 1,
@@ -73,7 +83,8 @@ describe("remember helpers", () => {
       assistantMessages: [{ id: assistant.id, text: "Noted your preference." }],
     });
 
-    expect(content).toBe("User: I like dosa.\n\nAssistant: Noted your preference.");
+    expect(content).toBe("The user likes dosa.");
+    expect(content).not.toContain("Assistant");
   });
 
   it("maps message ids to UUID v5 source_turn_ids", () => {
@@ -99,8 +110,8 @@ describe("handleSessionEvent", () => {
     const state = createRememberState();
     const { events, user, assistant } = completedTurnEvents(
       1,
-      "My name is Teja.",
-      "Nice to meet you, Teja.",
+      "I work on autonomous driving simulation.",
+      "Understood — autonomous driving simulation.",
     );
 
     let saveInput: ReturnType<typeof handleSessionEvent>;
@@ -110,7 +121,7 @@ describe("handleSessionEvent", () => {
 
     expect(saveInput).toMatchObject({
       type: "semantic",
-      content: "User: My name is Teja.\n\nAssistant: Nice to meet you, Teja.",
+      content: "The user works on autonomous driving simulation.",
       sourceTurnIds: [messageIdToTurnUuid(user.id), messageIdToTurnUuid(assistant.id)],
     });
 
