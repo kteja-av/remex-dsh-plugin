@@ -39,8 +39,12 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:sandbox": "pnpm run build && node --experimental-strip-types sandbox/run-integration.ts",
-    "test:dsh": "pnpm run build && node --experimental-strip-types sandbox/run-dsh-integration.ts"
+    "test:sandbox": "tsc -p tsconfig.json && node --experimental-strip-types sandbox/run-integration.ts",
+    "test:dsh": "tsc -p tsconfig.json && node --experimental-strip-types sandbox/run-dsh-integration.ts",
+    "setup": "bash scripts/setup-all.sh",
+    "setup:credentials": "node --experimental-strip-types sandbox/setup-dsh-credentials.ts",
+    "start:web": "bash sandbox/start-dsh-web.sh --no-open",
+    "test:browser": "node --experimental-strip-types sandbox/browser-verify.ts"
   },
   "keywords": [
     "deepseek-harness",
@@ -61,6 +65,7 @@
   "devDependencies": {
     "@deepseek-ai/dsh": "0.1.0-rc.8",
     "@types/node": "^22.0.0",
+    "playwright": "1.52.0",
     "typescript": "^6.0.3",
     "vitest": "^3.2.4"
   },

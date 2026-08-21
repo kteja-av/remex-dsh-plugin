@@ -1,59 +1,130 @@
 # remex-dsh-plugin
 
-Cordis MemoryService provider for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) over [Remex](https://github.com/kteja-av/remex-ai) HTTP.
+Cordis **MemoryService** provider for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) over [Remex](https://github.com/kteja-av/remex-ai) HTTP.
 
-DSH owns the agent loop; Remex owns memory. This out-of-tree plugin:
+DSH owns the agent loop; Remex owns memory. This plugin:
 
-- **Retrieves** relevant memories before inference (`agent/pre-step`)
-- **Evaluates** new memories after each turn (`session/event`, async)
-- **Exposes** an explicit `memory_search` tool for agent-directed recall
+- **Retrieves** memories before inference (`agent/pre-step` → `<remex_memory>` inject)
+- **Evaluates** new memories after each turn (`session/event`, async Write Gate)
+- **Exposes** `memory_search` for agent-directed recall
 
-It does not modify DSH core or Remex internals. Pattern follows [dsh-mem](https://github.com/Jelee0145/dsh-mem): Service Definition + Provider + Consumers, mounted via `cordis.patch.yml`.
+---
 
-## Prerequisites
+## One-command setup
 
-- Node.js 22+
-- pnpm
-- Remex API running (default `http://localhost:8000`)
+**Layout:** clone `remex-ai` and `remex-dsh-plugin` as sibling folders:
 
-Verify Remex health:
-
-```bash
-curl -sf http://localhost:8000/v1/health
-# {"status":"ok"}
+```
+parent/
+├── remex-ai/
+└── remex-dsh-plugin/
 ```
 
-## Quick start
+**Steps:**
 
 ```bash
-# In remex-dsh-plugin
-pnpm install
-pnpm test && pnpm exec tsc --noEmit
-pnpm run build
+cd remex-dsh-plugin
 
-# Add to a DSH profile (local path or published package)
-dsh plugin --profile <your-profile> add /absolute/path/to/remex-dsh-plugin
+# 1. Add your API key (never commit .env)
+cp .env.example .env
+# Edit .env → set DEEPSEEK_API_KEY=sk-...
+
+# 2. Setup everything (Docker/Colima, Remex, plugin build, DSH web profile)
+bash scripts/setup-all.sh
+
+# 3. Start the Web UI
+export DSH_HOME="$PWD/sandbox/.dsh-home"
+pnpm run start:web
 ```
 
-Set tenant/user UUIDs in `cordis.patch.yml` (or your profile overlay) before running agents against Remex.
+Open **http://127.0.0.1:3080** → connect a **workspace** → chat.
 
-## Install
-
-### Published package
+Equivalent npm script:
 
 ```bash
-dsh plugin --profile <your-profile> add @your-scope/remex-dsh-plugin
+pnpm run setup    # same as bash scripts/setup-all.sh
 ```
 
-### Local development
+### What `setup-all.sh` does
+
+| Step | Action |
+|------|--------|
+| 1 | Creates `.env` from `.env.example` if missing |
+| 2 | Starts Docker (Colima on macOS if needed) |
+| 3 | `docker compose up` in `../remex-ai` |
+| 4 | `pnpm install`, `pnpm run build`, `pnpm test` |
+| 5 | Writes DSH credentials/settings from `.env` |
+| 6 | `dsh plugin --profile web add` this repo |
+
+Override remex-ai location: set `REMEX_AI_DIR` in `.env`.
+
+---
+
+## Verify in the Web UI
+
+1. **Connect workspace** — required before the composer unlocks.
+2. **Settings → Models** — confirm DeepSeek API key is saved.
+3. **Session A:** `My name is Teja. I work on autonomous driving simulation.`
+4. Wait ~10s for async remember.
+5. **New session:** `What do you know about my work?` → expect driving/simulation recall.
+
+Use **first-person** facts (`I work on…`, `My name is…`). The plugin rewrites them as `"The user …"` for Remex Write Gate.
+
+### CLI verification
 
 ```bash
-pnpm install
-pnpm run build
-dsh plugin --profile <your-profile> add /absolute/path/to/remex-dsh-plugin
+pnpm run test:sandbox   # Remex HTTP integration
+pnpm run test:dsh       # DSH profile + dump-config
+pnpm exec tsc --noEmit
+pnpm test               # unit tests (52)
 ```
 
-The package bundles `cordis.patch.yml` via `package.json` → `dsh.bundle.patch`. You can also copy or extend that patch in your profile's own `cordis.patch.yml` overlay.
+---
+
+## Secrets and git safety
+
+| File | Commit? | Notes |
+|------|---------|-------|
+| `.env.example` | Yes | Placeholders only |
+| `.env` | **Never** | Your real API keys |
+| `sandbox/.dsh-home/` | **Never** | DSH profiles + `.credentials.yaml` |
+| `sandbox/*REPORT.md` | **Never** | Generated test output |
+
+**Important:** Do **not** put `DSH_HOME` in `.env` — DSH refuses to start. Export it in the shell:
+
+```bash
+export DSH_HOME="$PWD/sandbox/.dsh-home"
+```
+
+Optional keys in `.env`:
+
+| Variable | Purpose |
+|----------|---------|
+| `DEEPSEEK_API_KEY` | DSH agent LLM (required for Web chat) |
+| `LAGUNA_API_KEY` | Optional Command Code / Laguna provider |
+| `REMEX_BASE_URL` | Default `http://localhost:8000` |
+| `REMEX_TENANT_ID` / `REMEX_USER_ID` | Remex auth headers |
+
+Remex itself does **not** use DeepSeek/Laguna keys today (local encoder + local Write Gate judge).
+
+---
+
+## Install plugin manually (without full setup script)
+
+```bash
+pnpm install && pnpm run build
+export DSH_HOME="$PWD/sandbox/.dsh-home"
+node node_modules/@deepseek-ai/dsh/lib/bin.js plugin --profile web add "$PWD"
+node node_modules/@deepseek-ai/dsh/lib/bin.js --profile web --dump-config | grep remex
+```
+
+Published package (when available):
+
+```bash
+dsh plugin --profile web add @your-scope/remex-dsh-plugin
+```
+
+---
 
 ## Cordis patch
 
@@ -63,73 +134,18 @@ The package bundles `cordis.patch.yml` via `package.json` → `dsh.bundle.patch`
 |--------|--------|---------|
 | `memory` | `remex-provider` | `ctx.memory` — Remex HTTP adapter |
 | `remex-context-injector` | `context-injector` | Pre-step `<remex_memory>` inject |
-| `remex-remember` | `remember` | Post-turn async evaluate enqueue |
+| `remex-remember` | `remember` | Post-turn async evaluate |
 | `tool-memory-search` | `memory-tools` | `memory_search` tool |
 
-Example (override restates every key you keep — patches replace whole row config):
+Default Remex config in the patch:
 
 ```yaml
-- insert:
-    - id: memory
-      name: "@your-scope/remex-dsh-plugin/remex-provider"
-      config:
-        baseUrl: http://localhost:8000
-        tenantId: "00000000-0000-4000-8000-000000000001"
-        userId: "00000000-0000-4000-8000-000000000002"
-        tokenBudget: 512
-        limit: 5
-        rememberType: semantic
-    - id: remex-context-injector
-      name: "@your-scope/remex-dsh-plugin/context-injector"
-      config:
-        enabled: true
-        tokenBudget: 512
-        limit: 5
-    - id: remex-remember
-      name: "@your-scope/remex-dsh-plugin/remember"
-      config:
-        enabled: true
-        rememberType: semantic
-    - id: tool-memory-search
-      name: "@your-scope/remex-dsh-plugin/memory-tools"
-      config:
-        enabled: true
-        tokenBudget: 512
-        limit: 5
+baseUrl: http://localhost:8000
+tenantId: "00000000-0000-4000-8000-000000000001"
+userId: "00000000-0000-4000-8000-000000000002"
 ```
 
-## Configuration
-
-Per-row `config` in `cordis.patch.yml`:
-
-| Key | Module(s) | Purpose |
-|-----|-----------|---------|
-| `baseUrl` | remex-provider | Remex API base URL (default `http://localhost:8000`) |
-| `tenantId` | remex-provider | `X-Tenant-ID` UUID |
-| `userId` | remex-provider | `X-User-ID` UUID |
-| `tokenBudget` | remex-provider, context-injector, memory-tools | Default retrieve token budget |
-| `limit` | remex-provider, context-injector, memory-tools | Default retrieve result limit |
-| `rememberType` | remex-provider, remember | Evaluate memory type (default `semantic`) |
-| `enabled` | context-injector, remember, memory-tools | Toggle auto inject / remember / tool |
-| `timeoutMs` | remex-provider | Outbound HTTP timeout (default 5000 ms) |
-
-Environment variables for local dev (map into patch config in your profile):
-
-| Variable | Maps to |
-|----------|---------|
-| `REMEX_BASE_URL` | `baseUrl` |
-| `REMEX_TENANT_ID` | `tenantId` |
-| `REMEX_USER_ID` | `userId` |
-
-## Remex API
-
-| Operation | Endpoint | Notes |
-|-----------|----------|-------|
-| Health | `GET /v1/health` | No auth |
-| Retrieve | `GET /v1/memories:retrieve?query=...` | Uses `query` param (not `q`); auth headers required |
-| Remember | `POST /v1/memories:evaluate` | Returns `202 { job_id }`; never poll on hot path |
-
-Auth headers on every authenticated call: `X-Tenant-ID`, `X-User-ID`. DSH `MessageId` values map to Remex `source_turn_ids` as deterministic UUID v5.
+---
 
 ## Architecture
 
@@ -139,68 +155,56 @@ AFTER turn        →  session/event   →  ctx.memory.save    →  POST /v1/mem
 On demand         →  memory_search   →  ctx.memory.recall
 ```
 
-**Fail-open read path:** When Remex is down, times out, or returns `degraded: true`, retrieve returns empty context — the agent continues without injected memory.
+**Fail-open read:** Remex down → empty recall, agent continues.
 
-**Non-blocking write path:** Evaluate is fire-and-forget after `turn/end`; 429/5xx are logged, not thrown to the agent loop.
+**Write path:** Fire-and-forget evaluate; 429/5xx logged, not thrown.
 
-**Cross-session recall:** Scoped by tenant + user headers, not DSH session id.
+**Remember format:** Third-person user facts only (`"The user works on …"`), no assistant text in evaluate payload.
 
-## Tools
+---
 
-### `memory_search`
+## Remex API
 
-Agent-directed recall when automatic pre-step injection is insufficient. Delegates to `ctx.memory.recall(query)`.
+| Operation | Endpoint |
+|-----------|----------|
+| Health | `GET /v1/health` |
+| Retrieve | `GET /v1/memories:retrieve?query=...` |
+| Remember | `POST /v1/memories:evaluate` → `202 { job_id }` |
 
-| Parameter | Required | Description |
-|-----------|----------|-------------|
-| `query` | yes | Natural-language search string |
-| `tokenBudget` | no | Overrides plugin default |
-| `limit` | no | Max memories returned |
+Auth headers: `X-Tenant-ID`, `X-User-ID`.
 
-Returns structured memories and, when non-empty, a `<remex_memory>` formatted block.
-
-### Remember path and Write Gate
-
-Post-turn evaluate sends **third-person user facts** (e.g. `"The user works on …"`) derived from durable user messages. Assistant reply text is omitted from the evaluate payload (assistant message IDs remain in `source_turn_ids` for provenance). Remex Write Gate rejects candidates containing `"assistant"` or not starting with `"The user"`.
-
-## Package layout
-
-```
-src/
-├── memory.ts           # Abstract MemoryService seam
-├── remex-client.ts     # HTTP client (retrieve, evaluate, health)
-├── remex-provider.ts   # RemexMemoryProvider (ctx.memory)
-├── identity.ts         # MessageId → UUID v5 + auth headers
-├── format-context.ts   # <remex_memory> block builder
-├── context-injector.ts # agent/pre-step consumer
-├── remember.ts         # session/event async write (Write Gate–friendly facts)
-├── memory-tools.ts     # memory_search tool
-└── index.ts            # Re-exports
-```
+---
 
 ## Development
 
-```bash
-pnpm install
-pnpm test                  # 52 tests
-pnpm exec tsc --noEmit
-pnpm run build             # emits lib/
-pnpm run test:sandbox      # live Remex HTTP checks
-pnpm run test:dsh          # DSH plugin add + dump-config
+```
+src/
+├── remex-provider.ts   # ctx.memory adapter
+├── context-injector.ts # pre-step inject
+├── remember.ts         # async write (Write Gate facts)
+├── memory-tools.ts     # memory_search
+├── remex-client.ts     # HTTP client
+└── ...
 ```
 
-Key test suites:
+```bash
+pnpm install
+pnpm test
+pnpm run build
+```
 
-| File | Covers |
-|------|--------|
-| `tests/remex-client.test.ts` | HTTP client, timeouts, API shapes |
-| `tests/remex-provider.test.ts` | Fail-open recall, evaluate delegate |
-| `tests/context-injector.test.ts` | Pre-step inject, dedupe |
-| `tests/remember.test.ts` | Async evaluate enqueue |
-| `tests/failure.test.ts` | Remex down → empty recall, agent continues |
-| `tests/integration/recall-experiment.test.ts` | Cross-session recall script |
-| `tests/memory-tools.test.ts` | memory_search → ctx.memory.recall |
+---
+
+## Prerequisites
+
+- **Node.js** 22+
+- **pnpm** 11+
+- **Docker** (Docker Desktop or Colima) for remex-ai
+- **Sibling checkout:** `../remex-ai`
+- **DeepSeek API key** for DSH Web chat (optional Laguna key for alternate LLM)
+
+---
 
 ## Status
 
-MVP complete (M1–M7): provider, pre-step inject, async remember, `memory_search`, fail-open tests, and full Cordis patch packaging.
+MVP complete (M1–M7): provider, pre-step inject, async remember, `memory_search`, fail-open tests, full Cordis patch, sandbox + DSH integration harness.
