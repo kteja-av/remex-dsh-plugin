@@ -6,7 +6,7 @@ import type { MemoryService } from "../src/memory.ts";
 import {
   MEMORY_SEARCH_TOOL_NAME,
   apply,
-  buildMemorySearchToolRegistration,
+  buildMemorySearchToolDefinition,
   executeMemorySearch,
   memoryOf,
 } from "../src/memory-tools.ts";
@@ -80,16 +80,19 @@ describe("executeMemorySearch", () => {
   });
 });
 
-describe("buildMemorySearchToolRegistration", () => {
+describe("buildMemorySearchToolDefinition", () => {
   it("registers memory_search with recall-backed execute", async () => {
     const memory = mockMemory();
-    const tool = buildMemorySearchToolRegistration(() => memory, {
+    const tool = buildMemorySearchToolDefinition(() => memory, {
       tokenBudget: 512,
       limit: 5,
     });
 
     expect(tool.name).toBe(MEMORY_SEARCH_TOOL_NAME);
-    const result = await tool.execute({ query: "What work do I do?" });
+    const result = await tool.execute(
+      { query: "What work do I do?" },
+      { signal: new AbortController().signal } as never,
+    );
 
     expect(memory.recall).toHaveBeenCalledWith("What work do I do?", {
       tokenBudget: 512,

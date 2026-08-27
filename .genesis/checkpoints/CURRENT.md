@@ -1,17 +1,18 @@
 # CURRENT — remex-dsh-plugin
 
-**Status:** M10 complete (final L4 APPROVE)  
+**Status:** M11 complete (L4 APPROVE; caret spec note resolved)  
 **Updated:** 2026-08-27  
-**Next milestone:** M11 (memory_search via `defineTool`)  
-**Demo command:** `pnpm test tests/core-memory.test.ts tests/context-injector.test.ts`
+**Next milestone:** none listed after M11 (consider next plan item)  
+**Demo command:** `pnpm test tests/memory-tools.test.ts && pnpm exec tsc --noEmit`
 
 ## Active loop state
 - active_loop: idle
 - target: —
-- last_gate: L4 APPROVE (final)
-- last_action: final fresh-context L4 confirmed all criteria + invariants; build output regenerated
+- last_gate: L4 APPROVE
+- last_action: M11 memory_search via defineTool verified; dsh-tools caret spec aligned
 - model: grok
 
 ## Notes
-- M10 core-memory read integration shipped: typed `readCoreMemory`, `<remex_core_memory>` after `<remex_memory>`, gate default off, fail-open
-- Trail: L4 REJECT (ordering) → fix → re-verify APPROVE → build note resolved → final APPROVE
+- `@deepseek-ai/dsh-tools` now listed as `^0.1.0-rc.8` in package.json
+- `memory_search` registered through canonical `defineTool`; behavior unchanged
+- Independent L4 APPROVE; all three invariants intact

@@ -16,10 +16,12 @@ export interface ContextInjectorConfig {
     limit?: number;
     coreMemory?: CoreMemoryInjectConfig;
 }
-export interface PreStepDecision {
-    kind: "enter" | "reject" | string;
-    messages: Message[];
-}
+export type PreStepDecision = {
+    kind: "reject";
+} | {
+    kind: "enter";
+    messages: UserMessage[];
+};
 export interface PreStepPayload {
     agent: {
         session?: object;
@@ -29,11 +31,6 @@ export interface PreStepPayload {
     signal: {
         throwIfAborted(): void;
     };
-}
-declare module "@deepseek-ai/cordis" {
-    interface Events {
-        "agent/pre-step": (payload: PreStepPayload, next: () => Promise<PreStepDecision>) => PreStepDecision | Promise<PreStepDecision>;
-    }
 }
 export interface PreStepInjectionInput {
     claimedMessages: readonly Message[];
@@ -48,7 +45,7 @@ export interface PreStepInjectionResult {
 /** Extract query text from the last durable user message in the claimed batch. */
 export declare function extractLastUserMessageText(messages: readonly Message[]): string | undefined;
 /** Fold injected context immediately after the claimed batch in the waterfall. */
-export declare function foldAfterClaimed(allMessages: readonly Message[], claimedBatch: readonly Message[], injected: Message): Message[];
+export declare function foldAfterClaimed(allMessages: readonly UserMessage[], claimedBatch: readonly Message[], injected: UserMessage): UserMessage[];
 export declare function createRemexContextMessage(block: string): UserMessage;
 export declare function foldCoreMemoryBlock(decision: PreStepDecision, claimedMessages: readonly Message[], block: string): PreStepDecision;
 export declare function buildCoreMemoryClient(config: CoreMemoryInjectConfig): RemexClient | undefined;

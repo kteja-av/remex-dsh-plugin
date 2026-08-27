@@ -27,25 +27,15 @@ export interface ContextInjectorConfig {
   coreMemory?: CoreMemoryInjectConfig;
 }
 
-export interface PreStepDecision {
-  kind: "enter" | "reject" | string;
-  messages: Message[];
-}
+export type PreStepDecision =
+  | { kind: "reject" }
+  | { kind: "enter"; messages: UserMessage[] };
 
 export interface PreStepPayload {
   agent: { session?: object };
   messages: Message[];
   step: number;
   signal: { throwIfAborted(): void };
-}
-
-declare module "@deepseek-ai/cordis" {
-  interface Events {
-    "agent/pre-step": (
-      payload: PreStepPayload,
-      next: () => Promise<PreStepDecision>,
-    ) => PreStepDecision | Promise<PreStepDecision>;
-  }
 }
 
 export interface PreStepInjectionInput {
@@ -89,10 +79,10 @@ export function extractLastUserMessageText(
 
 /** Fold injected context immediately after the claimed batch in the waterfall. */
 export function foldAfterClaimed(
-  allMessages: readonly Message[],
+  allMessages: readonly UserMessage[],
   claimedBatch: readonly Message[],
-  injected: Message,
-): Message[] {
+  injected: UserMessage,
+): UserMessage[] {
   const lastClaimedIndex = allMessages.findLastIndex((message) =>
     claimedBatch.includes(message),
   );
@@ -142,6 +132,9 @@ export function foldCoreMemoryBlock(
   claimedMessages: readonly Message[],
   block: string,
 ): PreStepDecision {
+  if (decision.kind === "reject") {
+    return decision;
+  }
   const coreMessage = createCoreMemoryContextMessage(block);
   const messages = foldAfterLastRecall(decision.messages, coreMessage, claimedMessages);
   return {
@@ -152,10 +145,10 @@ export function foldCoreMemoryBlock(
 
 /** Insert after the last injected recall block so core memory follows `<remex_memory>`. */
 function foldAfterLastRecall(
-  allMessages: readonly Message[],
-  injected: Message,
+  allMessages: readonly UserMessage[],
+  injected: UserMessage,
   fallbackClaimed: readonly Message[],
-): Message[] {
+): UserMessage[] {
   const lastRecallIndex = allMessages.findLastIndex(
     (message) =>
       message.role === "user" &&

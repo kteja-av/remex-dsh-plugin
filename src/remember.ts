@@ -32,11 +32,6 @@ export interface RememberState {
   enqueuedTurns: Set<number>;
 }
 
-declare module "@deepseek-ai/cordis" {
-  interface Events {
-    "session/event": (session: object, event: SessionEventLike) => void;
-  }
-}
 
 function textFromMessage(message: Message): string {
   return message.content

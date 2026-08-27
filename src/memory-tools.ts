@@ -1,4 +1,6 @@
 import type { Context } from "@deepseek-ai/cordis";
+import { defineTool, type ToolDefinition } from "@deepseek-ai/dsh-tools";
+import type { ContentBlock } from "@deepseek-ai/dsh-llm";
 
 import { formatRemexMemoryBlock } from "./format-context.ts";
 import type { MemoryService } from "./memory.ts";
@@ -30,21 +32,12 @@ export interface MemorySearchResult {
   formatted?: string;
 }
 
-/** Minimal tool registry seam — raw definitions are accepted by `ctx.tools.register`. */
-export interface ToolRegistrar {
-  register(definition: MemorySearchToolRegistration): () => void;
-}
-
-export interface MemorySearchToolRegistration {
-  name: typeof MEMORY_SEARCH_TOOL_NAME;
-  description: string;
-  parameters: Record<string, unknown>;
-  execute(args: MemorySearchArgs): Promise<MemorySearchResult>;
-}
+/** Canonical output for `memory_search` (JSON lossless payload). */
+export type MemorySearchValue = MemorySearchResult;
 
 declare module "@deepseek-ai/cordis" {
   interface Context {
-    tools: ToolRegistrar;
+    tools: import("@deepseek-ai/dsh-tools").ToolRuntime;
   }
 }
 
@@ -95,10 +88,10 @@ export async function executeMemorySearch(
   return result;
 }
 
-export function buildMemorySearchToolRegistration(
+export function buildMemorySearchToolDefinition(
   getMemory: () => MemoryService,
   config: MemoryToolsConfig = {},
-): MemorySearchToolRegistration {
+): ToolDefinition {
   const defaults: Pick<MemoryToolsConfig, "tokenBudget" | "limit"> = {};
   if (config.tokenBudget !== undefined) {
     defaults.tokenBudget = config.tokenBudget;
@@ -107,33 +100,64 @@ export function buildMemorySearchToolRegistration(
     defaults.limit = config.limit;
   }
 
-  return {
+  return defineTool({
     name: MEMORY_SEARCH_TOOL_NAME,
     description:
       "Search persistent Remex memory for notes relevant to a query. "
       + "Use when automatic pre-step recall is insufficient or you need "
       + "agent-directed lookup across past sessions (same tenant/user).",
     parameters: {
-      type: "object",
-      additionalProperties: false,
-      properties: {
-        query: {
-          type: "string",
-          description: "Natural-language search query.",
-        },
-        tokenBudget: {
-          type: "integer",
-          description: "Optional token budget for retrieval (defaults to plugin config).",
-        },
-        limit: {
-          type: "integer",
-          description: "Optional maximum number of memories to return.",
+      query: {
+        type: "string",
+        required: true,
+        description: "Natural-language search query.",
+      },
+      tokenBudget: {
+        type: "integer",
+        description: "Optional token budget for retrieval (defaults to plugin config).",
+      },
+      limit: {
+        type: "integer",
+        description: "Optional maximum number of memories to return.",
+      },
+    },
+    output: {
+      schema: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          memories: {
+            type: "array",
+            items: {
+              type: "object",
+              additionalProperties: false,
+              properties: {
+                id: { type: "string" },
+                type: { type: "string" },
+                content: { type: "string" },
+                score: { type: "number" },
+              },
+            },
+          },
+          tokenCount: { type: "integer" },
+          formatted: { type: "string" },
         },
       },
-      required: ["query"],
+      render: (_args, value): ContentBlock[] => {
+        const result = value as MemorySearchValue;
+        const text = result.formatted
+          ?? result.memories
+            .map((memory) => memory.content)
+            .join("\n")
+          ?? "";
+        return [{ type: "text", text }];
+      },
     },
-    execute: async (args) => executeMemorySearch(getMemory(), args, defaults),
-  };
+    execute: async (args, exec) => {
+      exec.signal.throwIfAborted();
+      return executeMemorySearch(getMemory(), args, defaults);
+    },
+  });
 }
 
 export function apply(ctx: Context, config: MemoryToolsConfig = {}): void {
@@ -143,7 +167,7 @@ export function apply(ctx: Context, config: MemoryToolsConfig = {}): void {
     }
 
     scopedCtx.tools.register(
-      buildMemorySearchToolRegistration(() => scopedCtx.memory, config),
+      buildMemorySearchToolDefinition(() => scopedCtx.memory, config),
     );
   });
 }

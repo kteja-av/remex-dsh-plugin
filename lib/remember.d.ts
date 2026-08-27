@@ -27,11 +27,6 @@ export interface RememberState {
     buffers: Map<number, TurnRememberBuffer>;
     enqueuedTurns: Set<number>;
 }
-declare module "@deepseek-ai/cordis" {
-    interface Events {
-        "session/event": (session: object, event: SessionEventLike) => void;
-    }
-}
 /** Only durable human prompts — skip plugin injects and tool results. */
 export declare function isDurableUserMessage(message: UserMessage): boolean;
 export declare function shouldRememberTurn(reason: TurnEndReasonLike): boolean;

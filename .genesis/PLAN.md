@@ -146,6 +146,14 @@ Ship a local in-memory provider first; background sync to Remex.
 
 ## Progress (loops append here on milestone completion — newest last)
 
+- **M11 — memory_search via `defineTool` · DONE 2026-08-27.** L1 BUILD (2 iters) → G4 computed
+  green (`pnpm test tests/memory-tools.test.ts && pnpm exec tsc --noEmit` 7/7 exit 0; full
+  `pnpm test` 66/66 exit 0; `pnpm run build` exit 0) → L4 VERIFY APPROVE (separate fresh-context
+  subagent; all 4 success criteria + 3 invariants held; caret spec note resolved in iter 2).
+  Live: `memory_search` registered via canonical `@deepseek-ai/dsh-tools` `defineTool` (same
+  name/schema, output contract + render, cancellation-aware execute); raw `ToolRegistrar` seam
+  removed; duplicate Cordis event augmentations removed in favor of canonical dsh-agent/dsh-session
+  types.
 - **M10 — Core memory (M18) read integration · DONE 2026-08-27.** L1 BUILD (2 iters) → G4 computed
   green (`pnpm test tests/core-memory.test.ts tests/context-injector.test.ts` 18/18 exit 0; full
   `pnpm test` 66/66 exit 0; `pnpm exec tsc --noEmit` exit 0) → L4 REJECT (core block folded before
