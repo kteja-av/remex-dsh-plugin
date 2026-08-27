@@ -62,6 +62,9 @@ export class RemexMemoryProvider extends MemoryService {
         query: query.trim(),
         tokenBudget: options?.tokenBudget ?? this.defaultTokenBudget,
         limit: options?.limit ?? this.defaultLimit,
+        ...(options?.historical !== undefined
+          ? { historical: options.historical }
+          : {}),
       });
 
       if (result.degraded) {

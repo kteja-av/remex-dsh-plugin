@@ -73,6 +73,47 @@ describe("RemexMemoryProvider", () => {
     expect(result.degraded).toBe(false);
   });
 
+  it("passes historical through RecallOptions unchanged", async () => {
+    const retrieve = vi.fn(async (): Promise<RetrieveResult> => ({
+      memories: [],
+      tokenCount: 0,
+      degraded: false,
+    }));
+    const provider = new RemexMemoryProvider(mockContext(), {
+      ...baseConfig,
+      client: mockClient({ retrieve }),
+    });
+
+    await provider.recall("superseded", { historical: true });
+
+    expect(retrieve).toHaveBeenCalledWith({
+      query: "superseded",
+      tokenBudget: 512,
+      limit: 5,
+      historical: true,
+    });
+  });
+
+  it("omits historical from the client call by default", async () => {
+    const retrieve = vi.fn(async (): Promise<RetrieveResult> => ({
+      memories: [],
+      tokenCount: 0,
+      degraded: false,
+    }));
+    const provider = new RemexMemoryProvider(mockContext(), {
+      ...baseConfig,
+      client: mockClient({ retrieve }),
+    });
+
+    await provider.recall("active only");
+
+    expect(retrieve).toHaveBeenCalledWith({
+      query: "active only",
+      tokenBudget: 512,
+      limit: 5,
+    });
+  });
+
   it("returns empty recall when the client throws (fail-open)", async () => {
     const retrieve = vi.fn(async () => {
       throw new RemexHttpError(503, "upstream unavailable");

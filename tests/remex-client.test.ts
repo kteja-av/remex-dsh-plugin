@@ -114,6 +114,42 @@ describe("RemexClient", () => {
     expect(init.signal).toBeDefined();
   });
 
+  it("omits historical param by default", async () => {
+    const fetchImpl = vi.fn(async () =>
+      jsonResponse({ memories: [], token_count: 0, degraded: false }),
+    );
+    const client = new RemexClient({ baseUrl: "http://localhost:8000", identity, fetchImpl });
+
+    await client.retrieve({ query: "active only" });
+
+    const [url] = fetchImpl.mock.calls[0] as [string, RequestInit];
+    expect(url).not.toContain("historical=");
+  });
+
+  it("emits historical=true only when opted in", async () => {
+    const fetchImpl = vi.fn(async () =>
+      jsonResponse({ memories: [], token_count: 0, degraded: false }),
+    );
+    const client = new RemexClient({ baseUrl: "http://localhost:8000", identity, fetchImpl });
+
+    await client.retrieve({ query: "history", historical: true });
+
+    const [url] = fetchImpl.mock.calls[0] as [string, RequestInit];
+    expect(url).toContain("historical=true");
+  });
+
+  it("does not emit historical=false when explicitly opted out", async () => {
+    const fetchImpl = vi.fn(async () =>
+      jsonResponse({ memories: [], token_count: 0, degraded: false }),
+    );
+    const client = new RemexClient({ baseUrl: "http://localhost:8000", identity, fetchImpl });
+
+    await client.retrieve({ query: "active only", historical: false });
+
+    const [url] = fetchImpl.mock.calls[0] as [string, RequestInit];
+    expect(url).not.toContain("historical=");
+  });
+
   it("maps degraded retrieve responses", async () => {
     const fetchImpl = vi.fn(async () =>
       jsonResponse({ memories: [], token_count: 0, degraded: true }),

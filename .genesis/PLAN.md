@@ -146,6 +146,13 @@ Ship a local in-memory provider first; background sync to Remex.
 
 ## Progress (loops append here on milestone completion — newest last)
 
+- **M9 — Historical retrieve opt-in · DONE 2026-08-27.** L1 BUILD (1 iter) → G4 computed green
+  (`pnpm test tests/remex-client.test.ts tests/remex-provider.test.ts` 18/18 exit 0; full
+  `pnpm test` 57/57 exit 0; `pnpm exec tsc --noEmit` exit 0; live remex-ai M25 probe
+  `historical=true` and default both 200) → L4 VERIFY APPROVE (separate fresh-context subagent;
+  all 4 success criteria + 3 invariants held; falsification probes passed). Live:
+  `RecallOptions.historical` → `RetrieveInput.historical` → `historical=true` query param,
+  strict opt-in (`=== true`), omitted by default/explicit `false`.
 - **M8 — Compatibility baseline + dependency alignment (remex-ai M8–M25) · DONE 2026-08-27.** L1 BUILD
   (1 iter) → G4 computed green (`pnpm install` exit 0 with `@deepseek-ai/dsh-llm` → 0.1.0-rc.8;
   `pnpm test` 52/52 exit 0; `pnpm exec tsc --noEmit` exit 0; `pnpm run test:sandbox` 10 PASS /

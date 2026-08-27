@@ -5,6 +5,8 @@ import type { MemoryType, RetrievedMemory } from "./remex-client.ts";
 export interface RecallOptions {
   tokenBudget?: number;
   limit?: number;
+  /** Request expired/superseded assertions in addition to active ones. */
+  historical?: boolean;
 }
 
 export interface RecallResult {

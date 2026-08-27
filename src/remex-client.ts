@@ -15,6 +15,8 @@ export interface RetrieveInput {
   query: string;
   tokenBudget?: number;
   limit?: number;
+  /** Opt in to expired/superseded assertions (remex-ai M14 `historical=true`). */
+  historical?: boolean;
 }
 
 export interface RetrievedMemory {
@@ -112,6 +114,10 @@ export class RemexClient {
       token_budget: String(tokenBudget),
       limit: String(limit),
     });
+
+    if (input.historical === true) {
+      params.set("historical", "true");
+    }
 
     const response = await this.request("GET", `/v1/memories:retrieve?${params.toString()}`);
     const body = (await response.json()) as RetrieveResponseBody;

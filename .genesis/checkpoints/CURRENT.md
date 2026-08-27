@@ -1,18 +1,18 @@
 # CURRENT — remex-dsh-plugin
 
-**Status:** M8 complete (compatibility baseline + dependency alignment)  
+**Status:** M9 complete (L4 APPROVE)  
 **Updated:** 2026-08-27  
-**Next milestone:** M9 (historical retrieve opt-in)  
-**Demo command:** `pnpm install && pnpm test && pnpm exec tsc --noEmit && pnpm run test:sandbox`
+**Next milestone:** M10 (core-memory M18 read integration)  
+**Demo command:** `pnpm test tests/remex-client.test.ts tests/remex-provider.test.ts`
 
 ## Active loop state
 - active_loop: idle
-- target: M8
+- target: —
 - last_gate: L4 APPROVE
-- last_action: dsh-llm → 0.1.0-rc.8; unit 52/52; tsc clean; sandbox 10 PASS / 1 WARN / 1 SKIP / 0 FAIL
+- last_action: M9 historical opt-in verified 18/18 + full 57/57 + tsc clean + live 200 probes
 - model: grok
 
 ## Notes
-- `@deepseek-ai/dsh-llm` now resolves `0.1.0-rc.8`, matching `@deepseek-ai/dsh` rc.8
-- No `src/**` or wire-contract changes; M8 is dependency + docs alignment only
-- README Status documents remex-ai M8–M25 compatibility and optional (not-yet-consumed) M14/M18/M21/M23–M25 features
+- `historical=true` is opt-in only; default and explicit `false` omit the param
+- Provider recall forwards `historical` through `RecallOptions` unchanged
+- Independent L4 verdict: APPROVE; all three invariants intact
