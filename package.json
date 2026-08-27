@@ -44,7 +44,8 @@
     "setup": "bash scripts/setup-all.sh",
     "setup:credentials": "node --experimental-strip-types sandbox/setup-dsh-credentials.ts",
     "start:web": "bash sandbox/start-dsh-web.sh --no-open",
-    "test:browser": "node --experimental-strip-types sandbox/browser-verify.ts"
+    "test:browser": "node --experimental-strip-types sandbox/browser-verify.ts",
+    "test:browser-headed": "node --experimental-strip-types sandbox/browser-headed-verify.ts"
   },
   "keywords": [
     "deepseek-harness",
