@@ -9,6 +9,4 @@ coverage/
 .DS_Store
 sandbox/.dsh-home/
 sandbox/browser-screenshots/
-sandbox/REPORT.md
-sandbox/DSH-REPORT.md
-sandbox/BROWSER-REPORT.md
+sandbox/*REPORT.md

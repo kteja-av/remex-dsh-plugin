@@ -42,6 +42,7 @@
     "test:sandbox": "tsc -p tsconfig.json && node --experimental-strip-types sandbox/run-integration.ts",
     "test:dsh": "tsc -p tsconfig.json && node --experimental-strip-types sandbox/run-dsh-integration.ts",
     "setup": "bash scripts/setup-all.sh",
+    "setup:fresh": "bash scripts/setup-fresh.sh",
     "setup:credentials": "node --experimental-strip-types sandbox/setup-dsh-credentials.ts",
     "start:web": "bash sandbox/start-dsh-web.sh --no-open",
     "test:browser": "node --experimental-strip-types sandbox/browser-verify.ts",
