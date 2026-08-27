@@ -6,6 +6,8 @@ import {
   createRemexContextMessage,
   extractLastUserMessageText,
   foldAfterClaimed,
+  foldCoreMemoryBlock,
+  buildCoreMemoryClient,
   handlePreStepInjection,
   PLUGIN_NAME,
 } from "../src/context-injector.ts";
@@ -14,8 +16,9 @@ import {
   isRemexMemoryBlock,
   recallFingerprint,
 } from "../src/format-context.ts";
+import { formatRemexCoreMemoryBlock } from "../src/core-memory.ts";
 import { EMPTY_RECALL } from "../src/memory.ts";
-import type { RetrievedMemory } from "../src/remex-client.ts";
+import type { CoreMemoryBlock, RetrievedMemory } from "../src/remex-client.ts";
 
 const sampleMemories: RetrievedMemory[] = [
   {
@@ -186,6 +189,88 @@ describe("handlePreStepInjection", () => {
     order.push("inject");
 
     expect(order).toEqual(["before-next", "next", "after-next", "inject"]);
+  });
+});
+
+describe("foldCoreMemoryBlock", () => {
+  it("folds a distinct core-memory block after the claimed batch", () => {
+    const claimed = [userMessage("question")];
+    const decision = { kind: "enter" as const, messages: [...claimed] };
+    const block = formatRemexCoreMemoryBlock([
+      {
+        block: "persona",
+        content: "Be concise.",
+        version: 1,
+        maxTokens: 512,
+        updatedAt: "2026-08-27T12:00:00Z",
+        sourceTurnIds: ["11111111-1111-4111-8111-111111111111"],
+      } satisfies CoreMemoryBlock,
+    ]);
+
+    const folded = foldCoreMemoryBlock(decision, claimed, block!);
+
+    expect(folded.kind).toBe("enter");
+    expect(folded.messages).toHaveLength(2);
+    expect(folded.messages[1]?.source).toMatchObject({
+      kind: "plugin",
+      plugin: PLUGIN_NAME,
+      form: "snapshot",
+    });
+  });
+
+  it("folds the core-memory block after the recall block", () => {
+    const claimed = [userMessage("question")];
+    const recall = createRemexContextMessage(formatRemexMemoryBlock(sampleMemories)!);
+    const decision = { kind: "enter" as const, messages: [...claimed, recall] };
+    const coreBlock = formatRemexCoreMemoryBlock([
+      {
+        block: "persona",
+        content: "Be concise.",
+        version: 1,
+        maxTokens: 512,
+        updatedAt: "2026-08-27T12:00:00Z",
+        sourceTurnIds: ["11111111-1111-4111-8111-111111111111"],
+      } satisfies CoreMemoryBlock,
+    ]);
+
+    const folded = foldCoreMemoryBlock(decision, claimed, coreBlock!);
+
+    const recallIndex = folded.messages.findIndex(
+      (m) => m.source.kind === "plugin" && m.source.form === "recall",
+    );
+    const coreIndex = folded.messages.findIndex(
+      (m) => m.source.kind === "plugin" && m.source.form === "snapshot",
+    );
+    expect(coreIndex).toBeGreaterThan(recallIndex);
+    expect(folded.messages.map((m) => textFrom(m))).toEqual([
+      "question",
+      formatRemexMemoryBlock(sampleMemories),
+      formatRemexCoreMemoryBlock([
+        {
+          block: "persona",
+          content: "Be concise.",
+          version: 1,
+          maxTokens: 512,
+          updatedAt: "2026-08-27T12:00:00Z",
+          sourceTurnIds: ["11111111-1111-4111-8111-111111111111"],
+        } satisfies CoreMemoryBlock,
+      ]),
+    ]);
+  });
+});
+
+describe("buildCoreMemoryClient", () => {
+  it("returns undefined when tenant/user identity is missing", () => {
+    expect(buildCoreMemoryClient({ enabled: true })).toBeUndefined();
+  });
+
+  it("builds a Remex client when tenant/user identity is present", () => {
+    const client = buildCoreMemoryClient({
+      enabled: true,
+      tenantId: "11111111-1111-4111-8111-111111111111",
+      userId: "22222222-2222-4222-8222-222222222222",
+    });
+    expect(client).toBeDefined();
   });
 });
 

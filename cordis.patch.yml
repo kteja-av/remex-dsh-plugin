@@ -19,6 +19,11 @@
         enabled: true
         tokenBudget: 512
         limit: 5
+        coreMemory:
+          enabled: false
+          baseUrl: http://localhost:8000
+          tenantId: "00000000-0000-4000-8000-000000000001"
+          userId: "00000000-0000-4000-8000-000000000002"
     - id: remex-remember
       name: "@your-scope/remex-dsh-plugin/remember"
       config:

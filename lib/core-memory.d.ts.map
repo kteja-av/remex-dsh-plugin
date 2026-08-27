@@ -1,0 +1,1 @@
+{"version":3,"file":"core-memory.d.ts","sourceRoot":"","sources":["../src/core-memory.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,eAAe,EAAE,kBAAkB,EAAE,MAAM,mBAAmB,CAAC;AAK7E,uEAAuE;AACvE,eAAO,MAAM,uBAAuB,EAAE,SAAS,kBAAkB,EAIhE,CAAC;AAEF,wBAAgB,0BAA0B,CACxC,MAAM,EAAE,SAAS,eAAe,EAAE,GACjC,MAAM,GAAG,SAAS,CAqBpB;AAED,wBAAgB,sBAAsB,CAAC,OAAO,EAAE,MAAM,GAAG,OAAO,CAE/D"}

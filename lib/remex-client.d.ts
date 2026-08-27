@@ -12,6 +12,8 @@ export interface RetrieveInput {
     query: string;
     tokenBudget?: number;
     limit?: number;
+    /** Opt in to expired/superseded assertions (remex-ai M14 `historical=true`). */
+    historical?: boolean;
 }
 export interface RetrievedMemory {
     id: string;
@@ -41,6 +43,18 @@ export interface HealthResult {
     status: "ok" | "degraded";
     dependencies?: Record<string, unknown>;
 }
+export type CoreMemoryBlockKey = "persona" | "human" | "task_scratchpad";
+export interface CoreMemoryBlock {
+    block: CoreMemoryBlockKey;
+    content: string;
+    version: number;
+    maxTokens: number;
+    updatedAt: string;
+    sourceTurnIds: string[];
+}
+export interface CoreMemorySnapshot {
+    blocks: CoreMemoryBlock[];
+}
 export declare class RemexHttpError extends Error {
     readonly status: number;
     constructor(status: number, message: string);
@@ -55,6 +69,7 @@ export declare class RemexClient {
     constructor(config: RemexClientConfig);
     health(): Promise<HealthResult>;
     retrieve(input: RetrieveInput): Promise<RetrieveResult>;
+    readCoreMemory(): Promise<CoreMemorySnapshot>;
     evaluate(input: EvaluateInput): Promise<EvaluateResult>;
     private request;
 }

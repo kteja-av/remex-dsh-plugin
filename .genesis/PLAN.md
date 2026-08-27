@@ -146,6 +146,14 @@ Ship a local in-memory provider first; background sync to Remex.
 
 ## Progress (loops append here on milestone completion — newest last)
 
+- **M10 — Core memory (M18) read integration · DONE 2026-08-27.** L1 BUILD (2 iters) → G4 computed
+  green (`pnpm test tests/core-memory.test.ts tests/context-injector.test.ts` 18/18 exit 0; full
+  `pnpm test` 66/66 exit 0; `pnpm exec tsc --noEmit` exit 0) → L4 REJECT (core block folded before
+  recall) → iter 2 `foldAfterLastRecall` fix + ordering regression test → L4 re-verify APPROVE
+  (separate fresh-context subagent; all 5 success criteria + 3 invariants held). Live:
+  `RemexClient.readCoreMemory` typed M18 parse, `src/core-memory.ts` distinct
+  `<remex_core_memory>` block (persona→human→task_scratchpad), `coreMemory.enabled` gate default
+  off in `cordis.patch.yml`, fail-open read.
 - **M9 — Historical retrieve opt-in · DONE 2026-08-27.** L1 BUILD (1 iter) → G4 computed green
   (`pnpm test tests/remex-client.test.ts tests/remex-provider.test.ts` 18/18 exit 0; full
   `pnpm test` 57/57 exit 0; `pnpm exec tsc --noEmit` exit 0; live remex-ai M25 probe

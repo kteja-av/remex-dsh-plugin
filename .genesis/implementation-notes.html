@@ -33,12 +33,12 @@
   <p class="sub"><b>Rolling source of truth for what is LIVE right now.</b> The wiki can lag; this file
      cannot. Read this on every session start to avoid rebuilding what exists. This is your
      <i>git-like restart point</i>: if context is lost, this file rehydrates you.
-     Last updated: <code>2026-08-27</code> · by loop: <code>L4 VERIFY M9</code></p>
+     Last updated: <code>2026-08-27</code> · by loop: <code>L4 VERIFY M10</code></p>
 
   <!-- ───────────── ONE-LINE STATUS ───────────── -->
   <div class="card live">
-    <b>Now in flight:</b> none — M9 complete<br>
-    <b>Active loop:</b> idle · <b>Current milestone:</b> M9 done · <b>Phase:</b> 6 + 12<br>
+    <b>Now in flight:</b> none — M10 complete<br>
+    <b>Active loop:</b> idle · <b>Current milestone:</b> M10 done · <b>Phase:</b> 6 + 5<br>
     <b>Blocked on:</b> none
   </div>
 
@@ -67,6 +67,7 @@
         <tr><td>M8 dependency alignment</td><td><code>package.json</code>, <code>pnpm-lock.yaml</code></td><td><span class="pill live">live</span></td><td>dsh-llm 0.1.0-rc.8; 52/52 unit; tsc clean</td></tr>
         <tr><td>M8 sandbox compatibility</td><td><code>sandbox/run-integration.ts</code></td><td><span class="pill live">live</span></td><td>10 PASS / 1 WARN / 1 SKIP / 0 FAIL vs remex-ai M25</td></tr>
         <tr><td>Historical retrieve opt-in (M9)</td><td><code>src/remex-client.ts</code>, <code>src/memory.ts</code>, <code>src/remex-provider.ts</code></td><td><span class="pill live">live</span></td><td>historical=true only on opt-in; 18/18 targeted, 57/57 full</td></tr>
+        <tr><td>Core memory (M18) read (M10)</td><td><code>src/core-memory.ts</code>, <code>src/remex-client.ts</code>, <code>src/context-injector.ts</code></td><td><span class="pill live">live</span></td><td>&lt;remex_core_memory&gt; after &lt;remex_memory&gt;; gate default off; 18/18 targeted, 66/66 full</td></tr>
       </tbody>
     </table>
     <p class="note">Append a row the moment a milestone passes L4 VERIFY. The grep in G0 checks against this table.</p>
@@ -99,8 +100,8 @@
   <h2>Known gaps &amp; the ordered Next list</h2>
   <div class="card">
     <ol>
-      <li>M10 — core-memory (M18) read integration</li>
       <li>M11 — memory_search via `defineTool`</li>
+      <li>M12 — (next plan item)</li>
     </ol>
     <p class="note">Mirror of <code>checkpoints/CURRENT.md → next_action</code>, but human-readable and durable across compaction.</p>
   </div>
@@ -108,7 +109,7 @@
   <!-- ───────────── SESSION LOG (append-only) ───────────── -->
   <h2>Session log (append-only, newest first)</h2>
   <div class="card">
-    <p><code>2026-08-27</code> — M9 shipped: optional <code>historical</code> flag threaded from <code>RecallOptions</code> through <code>RetrieveInput</code> to the M14 <code>historical=true</code> query param, strict opt-in with active-only default preserved. Independent L4 APPROVE; 18/18 targeted, 57/57 full, tsc clean, live backend 200 probes. Next: M10 core-memory (M18) read integration.</p>
+    <p><code>2026-08-27</code> — M10 shipped: core-memory (M18) read integration with typed <code>readCoreMemory</code>, distinct <code>&lt;remex_core_memory&gt;</code> snapshot folded after <code>&lt;remex_memory&gt;</code>, config gate default off, and fail-open read. Independent L4 REJECT (ordering) → fix → re-verify APPROVE; 18/18 targeted, 66/66 full, tsc clean. Next: M11 memory_search via <code>defineTool</code>.</p>
     <p class="note">One paragraph per session: what shipped, what broke, what's next. This is the narrative the next cold session reads first.</p>
   </div>
 

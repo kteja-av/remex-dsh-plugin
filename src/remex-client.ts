@@ -52,6 +52,21 @@ export interface HealthResult {
   dependencies?: Record<string, unknown>;
 }
 
+export type CoreMemoryBlockKey = "persona" | "human" | "task_scratchpad";
+
+export interface CoreMemoryBlock {
+  block: CoreMemoryBlockKey;
+  content: string;
+  version: number;
+  maxTokens: number;
+  updatedAt: string;
+  sourceTurnIds: string[];
+}
+
+export interface CoreMemorySnapshot {
+  blocks: CoreMemoryBlock[];
+}
+
 export class RemexHttpError extends Error {
   readonly status: number;
 
@@ -81,6 +96,17 @@ interface RetrieveResponseBody {
 
 interface EvaluateResponseBody {
   job_id: string;
+}
+
+interface CoreMemoryListResponseBody {
+  blocks: Array<{
+    block: CoreMemoryBlockKey;
+    content: string;
+    version: number;
+    max_tokens: number;
+    updated_at: string;
+    source_turn_ids: string[];
+  }>;
 }
 
 export class RemexClient {
@@ -133,6 +159,21 @@ export class RemexClient {
       })),
       tokenCount: body.token_count,
       degraded: body.degraded,
+    };
+  }
+
+  async readCoreMemory(): Promise<CoreMemorySnapshot> {
+    const response = await this.request("GET", "/v1/core-memory");
+    const body = (await response.json()) as CoreMemoryListResponseBody;
+    return {
+      blocks: body.blocks.map((block) => ({
+        block: block.block,
+        content: block.content,
+        version: block.version,
+        maxTokens: block.max_tokens,
+        updatedAt: block.updated_at,
+        sourceTurnIds: block.source_turn_ids,
+      })),
     };
   }
 

@@ -1,19 +1,30 @@
 import type { Context } from "@deepseek-ai/cordis";
 import { createUserMessage, type Message, type UserMessage } from "@deepseek-ai/dsh-llm";
 
+import { formatRemexCoreMemoryBlock, isRemexCoreMemoryBlock } from "./core-memory.ts";
 import {
   formatRemexMemoryBlock,
   isRemexMemoryBlock,
   recallFingerprint,
 } from "./format-context.ts";
 import type { RecallResult } from "./memory.ts";
+import { RemexClient, type CoreMemoryBlock } from "./remex-client.ts";
 
 export const PLUGIN_NAME = "remex-dsh-plugin";
+
+export interface CoreMemoryInjectConfig {
+  enabled?: boolean;
+  baseUrl?: string;
+  tenantId?: string;
+  userId?: string;
+  timeoutMs?: number;
+}
 
 export interface ContextInjectorConfig {
   enabled?: boolean;
   tokenBudget?: number;
   limit?: number;
+  coreMemory?: CoreMemoryInjectConfig;
 }
 
 export interface PreStepDecision {
@@ -114,6 +125,61 @@ export function createRemexContextMessage(block: string): UserMessage {
   });
 }
 
+function createCoreMemoryContextMessage(block: string): UserMessage {
+  return createUserMessage({
+    content: [{ type: "text", text: block }],
+    source: {
+      kind: "plugin",
+      plugin: PLUGIN_NAME,
+      form: "snapshot",
+      sections: [{ name: "remex_core_memory", text: block }],
+    },
+  });
+}
+
+export function foldCoreMemoryBlock(
+  decision: PreStepDecision,
+  claimedMessages: readonly Message[],
+  block: string,
+): PreStepDecision {
+  const coreMessage = createCoreMemoryContextMessage(block);
+  const messages = foldAfterLastRecall(decision.messages, coreMessage, claimedMessages);
+  return {
+    kind: "enter",
+    messages,
+  };
+}
+
+/** Insert after the last injected recall block so core memory follows `<remex_memory>`. */
+function foldAfterLastRecall(
+  allMessages: readonly Message[],
+  injected: Message,
+  fallbackClaimed: readonly Message[],
+): Message[] {
+  const lastRecallIndex = allMessages.findLastIndex(
+    (message) =>
+      message.role === "user" &&
+      message.source.kind === "plugin" &&
+      message.source.plugin === PLUGIN_NAME &&
+      message.source.form === "recall",
+  );
+  if (lastRecallIndex === -1) {
+    return foldAfterClaimed(allMessages, fallbackClaimed, injected);
+  }
+  return allMessages.toSpliced(lastRecallIndex + 1, 0, injected);
+}
+
+export function buildCoreMemoryClient(config: CoreMemoryInjectConfig): RemexClient | undefined {
+  if (config.tenantId === undefined || config.userId === undefined) {
+    return undefined;
+  }
+  return new RemexClient({
+    baseUrl: config.baseUrl ?? "http://localhost:8000",
+    identity: { tenantId: config.tenantId, userId: config.userId },
+    ...(config.timeoutMs !== undefined ? { timeoutMs: config.timeoutMs } : {}),
+  });
+}
+
 export function handlePreStepInjection(
   input: PreStepInjectionInput,
 ): PreStepInjectionResult {
@@ -186,7 +252,33 @@ export function apply(ctx: Context, config: ContextInjectorConfig = {}): void {
           lastFingerprintBySession.set(session, result.fingerprint);
         }
 
-        return result.decision;
+        if (config.coreMemory?.enabled !== true) {
+          return result.decision;
+        }
+
+        const coreClient = buildCoreMemoryClient(config.coreMemory);
+        if (coreClient === undefined) {
+          return result.decision;
+        }
+
+        let coreBlocks: CoreMemoryBlock[] = [];
+        try {
+          coreBlocks = (await coreClient.readCoreMemory()).blocks;
+        } catch (error) {
+          scopedCtx.logger.warn("[remex-memory] core-memory read failed", error);
+          return result.decision;
+        }
+
+        const coreBlockText = formatRemexCoreMemoryBlock(coreBlocks);
+        if (coreBlockText === undefined || !isRemexCoreMemoryBlock(coreBlockText)) {
+          return result.decision;
+        }
+
+        return foldCoreMemoryBlock(
+          result.decision,
+          payload.messages,
+          coreBlockText,
+        );
       },
       { prepend: true },
     );

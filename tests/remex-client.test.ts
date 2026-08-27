@@ -171,6 +171,41 @@ describe("RemexClient", () => {
     await expect(client.retrieve({ query: "fail" })).rejects.toMatchObject({ status: 503 });
   });
 
+  it("reads core-memory blocks from GET /v1/core-memory", async () => {
+    const fetchImpl = vi.fn(async () =>
+      jsonResponse({
+        blocks: [
+          {
+            block: "persona",
+            content: "Assistant is concise.",
+            version: 3,
+            max_tokens: 512,
+            updated_at: "2026-08-27T12:00:00Z",
+            source_turn_ids: ["11111111-1111-4111-8111-111111111111"],
+          },
+        ],
+      }),
+    );
+    const client = new RemexClient({ baseUrl: "http://localhost:8000", identity, fetchImpl });
+
+    const result = await client.readCoreMemory();
+
+    expect(result.blocks).toHaveLength(1);
+    expect(result.blocks[0]).toEqual({
+      block: "persona",
+      content: "Assistant is concise.",
+      version: 3,
+      maxTokens: 512,
+      updatedAt: "2026-08-27T12:00:00Z",
+      sourceTurnIds: ["11111111-1111-4111-8111-111111111111"],
+    });
+
+    const [url, init] = fetchImpl.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe("http://localhost:8000/v1/core-memory");
+    expect(init.method).toBe("GET");
+    expect(init.headers).toMatchObject(buildAuthHeaders(identity));
+  });
+
   it("enqueues evaluate jobs and returns job_id on 202", async () => {
     const fetchImpl = vi.fn(async (_url, init) => {
       expect(init?.method).toBe("POST");

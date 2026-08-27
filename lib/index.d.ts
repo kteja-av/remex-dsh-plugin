@@ -11,4 +11,5 @@ export { MemoryService, EMPTY_RECALL } from "./memory.ts";
 export { RemexClient, RemexHttpError } from "./remex-client.ts";
 export { messageIdToTurnUuid, buildAuthHeaders } from "./identity.ts";
 export { formatRemexMemoryBlock, recallFingerprint } from "./format-context.ts";
+export { formatRemexCoreMemoryBlock, isRemexCoreMemoryBlock } from "./core-memory.ts";
 //# sourceMappingURL=index.d.ts.map
