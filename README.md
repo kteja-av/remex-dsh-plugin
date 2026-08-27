@@ -207,4 +207,6 @@ pnpm run build
 
 ## Status
 
-MVP complete (M1–M7): provider, pre-step inject, async remember, `memory_search`, fail-open tests, full Cordis patch, sandbox + DSH integration harness.
+Compatibility baseline aligned with the current remex-ai backend (M8–M25) and the DSH `rc.8` ecosystem: `@deepseek-ai/dsh-llm` resolves to `0.1.0-rc.8` (matching `@deepseek-ai/dsh`), and the provider, pre-step injector, async remember, and `memory_search` paths are proven unchanged against the current Remex HTTP surface without touching the wire contract.
+
+Remex-ai M14 `historical=true` retrieval, M18 core-memory blocks (`persona`, `human`, `task_scratchpad`), M21 memory routing, and M23–M25 Zettelkasten/card retrieval remain optional integrations for this plugin; they are exposed by the backend but not yet consumed by the provider/injector.

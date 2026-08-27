@@ -102,8 +102,53 @@ Ship a local in-memory provider first; background sync to Remex.
 - **Skills:** canon + tdd + llmops-ai-agents
 - **Token budget:** 50000
 
+### M8 — Compatibility baseline + dependency alignment (remex-ai M8–M25)
+- **Outcome:** The plugin's dependencies and docs are aligned with the current remex-ai backend (M8–M25) and the DSH `rc.8` ecosystem. Existing provider, injector, remember, and `memory_search` paths are proven unchanged against the current remex-ai HTTP surface without touching the wire contract.
+- **Phase:** Phase 0 (Cognitive) + Phase 12 (Reliability)
+- **Files / freeze boundary:** `package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`, `README.md`, `sandbox/run-integration.ts`
+- **Demo command:** `pnpm install && pnpm test && pnpm exec tsc --noEmit && pnpm run test:sandbox`
+- **Success criteria:** `@deepseek-ai/dsh-llm` resolves to `0.1.0-rc.8` (matching `@deepseek-ai/dsh`); all unit tests pass with zero source changes outside the freeze boundary; sandbox integration passes health, evaluate, job poll, and cross-session recall against current remex-ai; README "Status" section reflects M8–M25 compatibility and notes which features remain optional integrations.
+- **Loops:** L1, L4
+- **Skills:** canon + tdd + production-readiness
+- **Token budget:** 50000
+
+### M9 — Historical retrieve opt-in
+- **Outcome:** The retrieve seam exposes an optional `historical` flag forwarded as the M14 `historical=true` query param, letting callers explicitly request expired/superseded assertions while the default active-only behavior is preserved.
+- **Phase:** Phase 6 (Memory) + Phase 12 (Reliability)
+- **Files / freeze boundary:** `src/remex-client.ts`, `src/memory.ts`, `src/remex-provider.ts`, `tests/remex-client.test.ts`, `tests/remex-provider.test.ts`
+- **Demo command:** `pnpm test tests/remex-client.test.ts tests/remex-provider.test.ts`
+- **Success criteria:** `historical=true` is emitted only when the caller opts in; the param is omitted from the query string by default; provider recall passes `historical` through `RecallOptions` unchanged; all existing client/provider tests remain green.
+- **Loops:** L1, L4
+- **Skills:** canon + tdd + production-readiness
+- **Token budget:** 50000
+
+### M10 — Core memory (M18) read integration
+- **Outcome:** The plugin reads the tenant/user core-memory blocks (`persona`, `human`, `task_scratchpad`) from the remex-ai M18 endpoints and folds a bounded, owner-scoped working-memory block into the pre-step context alongside the episodic/semantic recall block.
+- **Phase:** Phase 6 (Memory) + Phase 5 (LLM context)
+- **Files / freeze boundary:** `src/remex-client.ts` (core-memory read methods), `src/core-memory.ts` (new), `src/context-injector.ts`, `src/format-context.ts`, `cordis.patch.yml`, `tests/core-memory.test.ts`, `tests/context-injector.test.ts`
+- **Demo command:** `pnpm test tests/core-memory.test.ts tests/context-injector.test.ts`
+- **Success criteria:** `GET /v1/core-memory` is parsed into typed blocks with version, content, and source turns; a `coreMemoryEnabled` config gate defaults off so existing behavior is unchanged; when enabled, the pre-step injection adds a distinct `<remex_core_memory>` block after `<remex_memory>`; core-memory read failures fail open and never block the agent; the Cordis patch exposes the new config without changing default tenant/user wiring.
+- **Loops:** L1, L4
+- **Skills:** canon + tdd + llmops-ai-agents
+- **Token budget:** 50000
+
+### M11 — memory_search via `defineTool`
+- **Outcome:** `memory_search` is registered through the canonical `@deepseek-ai/dsh-tools` `defineTool` helper instead of the raw `ToolRegistrar` seam, matching the production DSH tool contract while preserving the existing recall-backed execute path.
+- **Phase:** Phase 7 (Tooling) + Phase 17 (DX)
+- **Files / freeze boundary:** `src/memory-tools.ts`, `package.json`, `tests/memory-tools.test.ts`
+- **Demo command:** `pnpm test tests/memory-tools.test.ts && pnpm exec tsc --noEmit`
+- **Success criteria:** the tool registers with the same name and JSON schema via `defineTool`; `executeMemorySearch` behavior is unchanged; `@deepseek-ai/dsh-tools` is added as a dependency at `^0.1.0-rc.8`; typecheck is clean against the new tool definition types.
+- **Loops:** L1, L4
+- **Skills:** canon + tdd + llmops-ai-agents
+- **Token budget:** 50000
+
 ---
 
 ## Progress (loops append here on milestone completion — newest last)
 
-- _(none yet — first loop fills this)_
+- **M8 — Compatibility baseline + dependency alignment (remex-ai M8–M25) · DONE 2026-08-27.** L1 BUILD
+  (1 iter) → G4 computed green (`pnpm install` exit 0 with `@deepseek-ai/dsh-llm` → 0.1.0-rc.8;
+  `pnpm test` 52/52 exit 0; `pnpm exec tsc --noEmit` exit 0; `pnpm run test:sandbox` 10 PASS /
+  1 WARN / 1 SKIP / 0 FAIL exit 0 vs remex-ai M25 stack) → L4 VERIFY APPROVE (in-session fresh
+  check; no wire-contract or `src/**` changes). Live: dsh-llm rc.8 dependency + lockfile,
+  README Status for M8–M25 compatibility and optional M14/M18/M21/M23–M25 integrations.

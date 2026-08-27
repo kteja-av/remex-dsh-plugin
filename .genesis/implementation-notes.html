@@ -33,12 +33,12 @@
   <p class="sub"><b>Rolling source of truth for what is LIVE right now.</b> The wiki can lag; this file
      cannot. Read this on every session start to avoid rebuilding what exists. This is your
      <i>git-like restart point</i>: if context is lost, this file rehydrates you.
-     Last updated: <code>2026-08-20</code> · by loop: <code>L4 VERIFY M7</code></p>
+     Last updated: <code>2026-08-27</code> · by loop: <code>L4 VERIFY M8</code></p>
 
   <!-- ───────────── ONE-LINE STATUS ───────────── -->
   <div class="card live">
-    <b>Now in flight:</b> none — plan complete (M1–M7 L4 APPROVE)<br>
-    <b>Active loop:</b> idle · <b>Current milestone:</b> M7 done · <b>Phase:</b> 7 + 17<br>
+    <b>Now in flight:</b> none — M8 complete<br>
+    <b>Active loop:</b> idle · <b>Current milestone:</b> M8 done · <b>Phase:</b> 0 + 12<br>
     <b>Blocked on:</b> none
   </div>
 
@@ -64,6 +64,8 @@
         <tr><td>memory_search tool</td><td><code>src/memory-tools.ts</code></td><td><span class="pill live">live</span></td><td>7/7 tests; ctx.memory.recall</td></tr>
         <tr><td>Full Cordis patch stack</td><td><code>cordis.patch.yml</code></td><td><span class="pill live">live</span></td><td>provider + injector + remember + tools</td></tr>
         <tr><td>Remex health baseline</td><td><code>GET /v1/health</code></td><td><span class="pill live">live</span></td><td><code>curl -sf localhost:8000/v1/health</code></td></tr>
+        <tr><td>M8 dependency alignment</td><td><code>package.json</code>, <code>pnpm-lock.yaml</code></td><td><span class="pill live">live</span></td><td>dsh-llm 0.1.0-rc.8; 52/52 unit; tsc clean</td></tr>
+        <tr><td>M8 sandbox compatibility</td><td><code>sandbox/run-integration.ts</code></td><td><span class="pill live">live</span></td><td>10 PASS / 1 WARN / 1 SKIP / 0 FAIL vs remex-ai M25</td></tr>
       </tbody>
     </table>
     <p class="note">Append a row the moment a milestone passes L4 VERIFY. The grep in G0 checks against this table.</p>
@@ -96,8 +98,8 @@
   <h2>Known gaps &amp; the ordered Next list</h2>
   <div class="card">
     <ol>
-      <li>{{NEXT_1}}</li>
-      <li>{{NEXT_2}}</li>
+      <li>M9 — historical retrieve opt-in (forward M14 `historical=true`)</li>
+      <li>M10 — core-memory (M18) read integration</li>
     </ol>
     <p class="note">Mirror of <code>checkpoints/CURRENT.md → next_action</code>, but human-readable and durable across compaction.</p>
   </div>
@@ -105,7 +107,7 @@
   <!-- ───────────── SESSION LOG (append-only) ───────────── -->
   <h2>Session log (append-only, newest first)</h2>
   <div class="card">
-    <p><code>{{TIMESTAMP}}</code> — {{SESSION_SUMMARY}}</p>
+    <p><code>2026-08-27</code> — M8 shipped: aligned <code>@deepseek-ai/dsh-llm</code> to 0.1.0-rc.8, refreshed README Status for remex-ai M8–M25 compatibility, and re-ran the full sandbox against the M25 remex-ai stack (10 PASS / 1 WARN / 1 SKIP / 0 FAIL). No <code>src/**</code> or wire-contract changes. Next: M9 historical retrieve opt-in.</p>
     <p class="note">One paragraph per session: what shipped, what broke, what's next. This is the narrative the next cold session reads first.</p>
   </div>
 
