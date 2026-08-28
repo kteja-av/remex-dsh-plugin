@@ -21,7 +21,7 @@ Read in order:
 Project context:
 - Build @your-scope/remex-dsh-plugin — Cordis MemoryService over Remex HTTP (retrieve pre-step, evaluate post-turn).
 - Reference: dsh-mem pattern, remex-ai GET /v1/memories:retrieve?query=... (NOT q), POST /v1/memories:evaluate.
-- Repo path: /Users/krishnateja/Documents/Git projects/remex-dsh-plugin
+- Repo path: <repo-root> (sibling of the remex-ai checkout)
 
 Then:
 1. Pick M1 (next unstarted) or resume from CURRENT.md.

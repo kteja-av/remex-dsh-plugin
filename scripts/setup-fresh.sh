@@ -31,7 +31,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 PARENT="$(dirname "$ROOT")"
 REMEX_AI="${REMEX_AI_DIR:-$PARENT/remex-ai}"
-REMEX_AI_URL="${REMEX_AI_URL:-https://github.com/kteja-av/remex-ai.git}"
+REMEX_AI_URL="${REMEX_AI_URL:-https://github.com/remex-ai/remex-ai.git}"
 REMEX_AI_REF="${REMEX_AI_REF:-master}"
 DSH_HOME="${DSH_HOME:-$ROOT/sandbox/.dsh-home}"
 DSH_BIN="$ROOT/node_modules/@deepseek-ai/dsh/lib/bin.js"
@@ -190,7 +190,7 @@ main() {
 ========================================================================
  1. Connect a workspace folder.
  2. Settings → Models → confirm your API key is saved.
- 3. Chat: "My name is Teja. I work on autonomous driving simulation."
+ 3. Chat: "My name is Alex. I work on autonomous driving simulation."
  4. New session: "What do you know about my work?" → expect work recall.
 
  Remex engine: $REMEX_HEALTH

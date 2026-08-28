@@ -67,7 +67,7 @@ describe("remember helpers", () => {
   });
 
   it("formats user facts for Remex Write Gate admission", () => {
-    expect(formatUserFactForEvaluate("My name is Teja.")).toBe("The user's name is Teja.");
+    expect(formatUserFactForEvaluate("My name is Alex.")).toBe("The user's name is Alex.");
     expect(formatUserFactForEvaluate("I work on autonomous driving simulation.")).toBe(
       "The user works on autonomous driving simulation.",
     );

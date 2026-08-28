@@ -217,7 +217,7 @@ async function main(): Promise<void> {
   try {
     const turn1 = await evaluateAndWait(
       remex,
-      formatUserFactForEvaluate("My name is Teja.")!,
+      formatUserFactForEvaluate("My name is Alex.")!,
       "sandbox-turn-1-name",
     );
     const turn2 = await evaluateAndWait(
@@ -246,7 +246,7 @@ async function main(): Promise<void> {
   } catch (error) {
     record({
       id: "S3",
-      name: "Write Gate evaluate (Teja + driving)",
+      name: "Write Gate evaluate (Alex + driving)",
       status: "FAIL",
       detail: String(error),
     });

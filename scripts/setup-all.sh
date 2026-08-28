@@ -102,7 +102,7 @@ Setup complete.
 Then open http://127.0.0.1:3080
   1. Connect a workspace folder
   2. Settings → Models → confirm API key
-  3. Chat: "My name is Teja. I work on autonomous driving simulation."
+  3. Chat: "My name is Alex. I work on autonomous driving simulation."
   4. New session: "What do you know about my work?"
 
 Optional verification:

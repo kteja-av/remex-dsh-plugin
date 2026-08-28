@@ -1,10 +1,14 @@
 /**
- * Controlled Teja / driving / dosa cross-session recall experiment.
+ * Controlled cross-session recall experiment.
+ *
+ * A generic user persona ("Alex", autonomous driving work, dosa breakfast)
+ * verifies that memories persist across sessions and that a work question
+ * outranks an irrelevant breakfast detail.
  *
  * Mirrors Phase 14 from Deepseek_Harness_plugin_with_remex.md:
  *
  * Manual live run (requires Remex + DSH):
- *   Turn 1 — "My name is Teja. I work on autonomous driving simulation."
+ *   Turn 1 — "My name is Alex. I work on autonomous driving simulation."
  *   Turn 2 — new session, same tenant/user: "What do you know about my work?"
  *            → expect autonomous driving domain recalled
  *   Turn 3 — "Today I had dosa for breakfast", then "What kind of work am I doing?"
@@ -63,7 +67,7 @@ function scoreMemory(query: string, content: string): number {
       score += 0.2;
     }
   }
-  if (c.includes("teja") && q.includes("name")) {
+  if (c.includes("alex") && q.includes("name")) {
     score += 0.5;
   }
   return score;
@@ -164,12 +168,12 @@ function userMessage(text: string) {
   });
 }
 
-describe("Teja / driving / dosa cross-session recall experiment", () => {
+describe("cross-session recall experiment", () => {
   it("turn 1 stores name and professional domain", async () => {
     const { client, saveTurn } = createCrossSessionStore();
 
     await saveTurn(
-      "User: My name is Teja.\n\nAssistant: Nice to meet you, Teja.",
+      "User: My name is Alex.\n\nAssistant: Nice to meet you, Alex.",
       "turn-1-user",
     );
     await saveTurn(
@@ -184,7 +188,7 @@ describe("Teja / driving / dosa cross-session recall experiment", () => {
     const { client, saveTurn } = createCrossSessionStore();
 
     await saveTurn(
-      "User: My name is Teja.\n\nAssistant: Nice to meet you, Teja.",
+      "User: My name is Alex.\n\nAssistant: Nice to meet you, Alex.",
       "session-a-turn-1",
     );
     await saveTurn(

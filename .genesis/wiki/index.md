@@ -25,7 +25,7 @@ each with frontmatter and ≥2 `[[wikilinks]]`. The L3 RESEARCH loop writes here
 - `docs/Remex_DSH_Plugin_Plan.md` — authoritative repo layout, API contract, milestone order (user plan)
 - `docs/Deepseek_Harness_plugin_with_remex.md` — integration narrative and MVP vertical slice
 - [dsh-mem](https://github.com/Jelee0145/dsh-mem) — reference Cordis MemoryService + patch pattern
-- [remex-ai routes_retrieve.py](https://github.com/kteja-av/remex-ai) — `query` param (not `q`), degraded flag
+- [remex-ai routes_retrieve.py](https://github.com/remex-ai/remex-ai) — `query` param (not `q`), degraded flag
 
 ## Seeded from agentic-swe-kit
 

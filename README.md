@@ -1,6 +1,6 @@
 # remex-dsh-plugin
 
-Cordis **MemoryService** provider for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) over [Remex](https://github.com/kteja-av/remex-ai) HTTP.
+Cordis **MemoryService** provider for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) over [Remex](https://github.com/remex-ai/remex-ai) HTTP.
 
 DSH owns the agent loop; Remex owns memory. This plugin:
 
@@ -64,7 +64,7 @@ Override remex-ai location: set `REMEX_AI_DIR` in `.env`.
 
 1. **Connect workspace** — required before the composer unlocks.
 2. **Settings → Models** — confirm DeepSeek API key is saved.
-3. **Session A:** `My name is Teja. I work on autonomous driving simulation.`
+3. **Session A:** `My name is Alex. I work on autonomous driving simulation.`
 4. Wait for async remember — the Write Gate admits in ~80ms (was ~2s on first writes before the Aug 2026 perf fix), so recall is usually available within a second.
 5. **New session:** `What do you know about my work?` → expect driving/simulation recall.
 
@@ -130,6 +130,14 @@ Published package (when available):
 
 ```bash
 dsh plugin --profile web add @your-scope/remex-dsh-plugin
+```
+
+### Using a fork
+
+The default setup clones the upstream `remex-ai` repo. To use a fork, point `REMEX_AI_URL` at it (see below) or set `REMEX_AI_DIR` to an existing checkout:
+
+```bash
+REMEX_AI_URL=https://github.com/<your-account>/remex-ai.git bash scripts/setup-fresh.sh
 ```
 
 ---

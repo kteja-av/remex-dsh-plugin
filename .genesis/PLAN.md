@@ -83,7 +83,7 @@ Ship a local in-memory provider first; background sync to Remex.
 - **Token budget:** 50000
 
 ### M6 — Cross-session recall + fail-open integration tests
-- **Outcome:** Controlled Teja/driving/dosa experiment script; `failure.test.ts` proves empty retrieve when Remex API stopped.
+- **Outcome:** Controlled cross-session recall experiment script; `failure.test.ts` proves empty retrieve when Remex API stopped.
 - **Phase:** Phase 9 (Eval) + Phase 12
 - **Files:** `tests/failure.test.ts`, `tests/integration/recall-experiment.test.ts` (or script)
 - **Demo command:** `pnpm test tests/failure.test.ts`
